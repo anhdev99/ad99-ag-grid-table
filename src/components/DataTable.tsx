@@ -45,6 +45,16 @@ function DataTable<T = any>({
   // Selection tracking for custom header select-all (works for both clientSide & infinite displayed rows)
   const [allSelected, setAllSelected] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
+  const selectionStateRef = useRef({ allSelected: false, selectedCount: 0 });
+  
+  // Store callbacks in refs to avoid triggering processedColumnDefs changes
+  const callbacksRef = useRef({ onAdd, onExport, onDelete });
+
+  // Keep refs in sync
+  useEffect(() => {
+    selectionStateRef.current = { allSelected, selectedCount };
+    callbacksRef.current = { onAdd, onExport, onDelete };
+  }, [allSelected, selectedCount, onAdd, onExport, onDelete]);
 
   // Reset first load marker when switching model type
   useEffect(() => {
@@ -56,6 +66,48 @@ function DataTable<T = any>({
       setInitialLoading(false);
     }
   }, [rowModelType]);
+
+  // Custom header component for select all - stable reference using ref for state
+  const HeaderSelectAllComponent = () => {
+    const total = gridApiRef.current?.getDisplayedRowCount() || 0;
+    const { allSelected, selectedCount } = selectionStateRef.current;
+    const indeterminate = !allSelected && selectedCount > 0 && selectedCount < total;
+    
+    const toggleSelectAll = () => {
+      if (!gridApiRef.current) return;
+      const currentAllSelected = selectionStateRef.current.allSelected;
+      
+      if (rowModelType === 'infinite') {
+        // For infinite model, manually iterate through displayed rows
+        gridApiRef.current.forEachNode((node: any) => {
+          if (node.data) { // Only select nodes with actual data (not loading placeholders)
+            node.setSelected(!currentAllSelected);
+          }
+        });
+      } else {
+        // For clientSide model, use built-in methods
+        if (currentAllSelected) {
+          gridApiRef.current.deselectAll();
+        } else {
+          gridApiRef.current.selectAll();
+        }
+      }
+    };
+    
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+        <Tooltip title={allSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'} variant="soft" placement="bottom">
+          <IconButton size="sm" variant={indeterminate ? 'soft' : 'plain'} color={indeterminate ? 'warning' : 'neutral'} onClick={toggleSelectAll}>
+            {allSelected ? (
+              <DoneAllRoundedIcon sx={{ fontSize: 18 }} />
+            ) : (
+              <CheckBoxOutlineBlankRoundedIcon sx={{ fontSize: 18, opacity: indeterminate ? 0.6 : 1 }} />
+            )}
+          </IconButton>
+        </Tooltip>
+      </Box>
+    );
+  };
 
   // Sync filteredData when rowData changes
   useEffect(() => {
@@ -93,8 +145,43 @@ function DataTable<T = any>({
     if (onRefresh) onRefresh();
   }, [rowData, onRefresh]);
 
+  // Memoize datasource to prevent re-creation on every render
+  const datasource = useMemo(() => {
+    if (rowModelType !== 'infinite') return undefined;
+    
+    return {
+      getRows: async (params: any) => {
+        // Only show overlay for the very first request
+        if (firstLoadRef.current) {
+          setInitialLoading(true);
+        }
+        const startRow = params.startRow || 0;
+        const endRow = params.endRow || 100;
+        try {
+          if (onFetchData) {
+            const result = await onFetchData(startRow, endRow);
+            params.successCallback(result.data, result.totalCount);
+          } else {
+            const rowsThisPage = filteredData.slice(startRow, endRow);
+            const lastRow = filteredData.length;
+            params.successCallback(rowsThisPage, lastRow);
+          }
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          params.failCallback();
+        } finally {
+          if (firstLoadRef.current) {
+            firstLoadRef.current = false;
+            setInitialLoading(false);
+          }
+        }
+      }
+    };
+  }, [rowModelType, onFetchData, filteredData]);
+
   // Inject custom loading cell renderer + action toolbar for first two technical columns
   const processedColumnDefs = useMemo(() => {
+    console.log('🔄 processedColumnDefs recalculated');
     return columnDefs.map((col: any, idx: number) => {
       // Apply fixed narrow width to first two columns in all modes
       const baseCol: any = { ...col };
@@ -120,7 +207,7 @@ function DataTable<T = any>({
             if (params.node.rowPinned === 'top' && showActionToolbar) {
               return (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  <IconButton size="sm" variant="plain" color="primary" onClick={onAdd}>
+                  <IconButton size="sm" variant="plain" color="primary" onClick={() => callbacksRef.current.onAdd?.()}>
                     <AddRoundedIcon fontSize="small" />
                   </IconButton>
                 </Box>
@@ -176,35 +263,9 @@ function DataTable<T = any>({
       }
       // Second column (checkbox): merge all remaining for action toolbar OR loading
       if (idx === 1) {
-        const HeaderSelectAll = () => {
-          const total = gridApiRef.current?.getDisplayedRowCount() || 0;
-          const indeterminate = !allSelected && selectedCount > 0 && selectedCount < total;
-          const toggleSelectAll = () => {
-            if (!gridApiRef.current) return;
-            if (allSelected) {
-              gridApiRef.current.deselectAll();
-            } else {
-              gridApiRef.current.selectAll();
-            }
-            // state will be updated in onSelectionChanged
-          };
-          return (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-              <Tooltip title={allSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'} variant="soft" placement="bottom">
-                <IconButton size="sm" variant={indeterminate ? 'soft' : 'plain'} color={indeterminate ? 'warning' : 'neutral'} onClick={toggleSelectAll}>
-                  {allSelected ? (
-                    <DoneAllRoundedIcon sx={{ fontSize: 18 }} />
-                  ) : (
-                    <CheckBoxOutlineBlankRoundedIcon sx={{ fontSize: 18, opacity: indeterminate ? 0.6 : 1 }} />
-                  )}
-                </IconButton>
-              </Tooltip>
-            </Box>
-          );
-        };
         return {
           ...baseCol,
-          headerComponent: HeaderSelectAll,
+          headerComponent: HeaderSelectAllComponent,
           checkboxSelection: (params: any) => {
             if (params.node.rowPinned === 'top') return false;
             if (!params.data) return false;
@@ -214,10 +275,10 @@ function DataTable<T = any>({
             if (params.node.rowPinned === 'top' && showActionToolbar) {
               return (
                 <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-start', px: 1.25, height: '100%', width: '100%' }}>
-                  <IconButton size="sm" variant="plain" color="neutral" onClick={onExport}>
+                  <IconButton size="sm" variant="plain" color="neutral" onClick={() => callbacksRef.current.onExport?.()}>
                     <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
                   </IconButton>
-                  <IconButton size="sm" variant="plain" color="danger" onClick={onDelete}>
+                  <IconButton size="sm" variant="plain" color="danger" onClick={() => callbacksRef.current.onDelete?.()}>
                     <DeleteRoundedIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                 </Box>
@@ -251,7 +312,7 @@ function DataTable<T = any>({
         },
       };
     });
-  }, [columnDefs, rowModelType]);
+  }, [columnDefs, rowModelType, showActionToolbar]);
 
   return (
     <Sheet 
@@ -285,41 +346,14 @@ function DataTable<T = any>({
           suppressRowClickSelection={true}
           rowModelType={rowModelType}
           onGridReady={({ api }) => { gridApiRef.current = api; }}
-          onSelectionChanged={() => {
+          onSelectionChanged={useCallback(() => {
             if (!gridApiRef.current) return;
             const total = gridApiRef.current.getDisplayedRowCount();
             const selected = gridApiRef.current.getSelectedNodes().length;
             setSelectedCount(selected);
             setAllSelected(total > 0 && selected === total);
-          }}
-          datasource={rowModelType === 'infinite' ? {
-            getRows: async (params) => {
-              // Only show overlay for the very first request
-              if (firstLoadRef.current) {
-                setInitialLoading(true);
-              }
-              const startRow = params.startRow || 0;
-              const endRow = params.endRow || 100;
-              try {
-                if (onFetchData) {
-                  const result = await onFetchData(startRow, endRow);
-                  params.successCallback(result.data, result.totalCount);
-                } else {
-                  const rowsThisPage = filteredData.slice(startRow, endRow);
-                  const lastRow = filteredData.length;
-                  params.successCallback(rowsThisPage, lastRow);
-                }
-              } catch (error) {
-                console.error('Error fetching data:', error);
-                params.failCallback();
-              } finally {
-                if (firstLoadRef.current) {
-                  firstLoadRef.current = false;
-                  setInitialLoading(false);
-                }
-              }
-            }
-          } : undefined}
+          }, [])}
+          datasource={datasource}
           cacheBlockSize={100}
           cacheOverflowSize={2}
           maxConcurrentDatasourceRequests={1}
