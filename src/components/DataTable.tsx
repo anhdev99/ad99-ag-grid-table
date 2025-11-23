@@ -42,19 +42,13 @@ function DataTable<T = any>({
   const [initialLoading, setInitialLoading] = useState(rowModelType === 'infinite');
   const firstLoadRef = useRef(rowModelType === 'infinite');
   const gridApiRef = useRef<any>(null);
-  // Selection tracking for custom header select-all (works for both clientSide & infinite displayed rows)
-  const [allSelected, setAllSelected] = useState(false);
-  const [selectedCount, setSelectedCount] = useState(0);
-  const selectionStateRef = useRef({ allSelected: false, selectedCount: 0 });
-  
   // Store callbacks in refs to avoid triggering processedColumnDefs changes
   const callbacksRef = useRef({ onAdd, onExport, onDelete });
 
   // Keep refs in sync
   useEffect(() => {
-    selectionStateRef.current = { allSelected, selectedCount };
     callbacksRef.current = { onAdd, onExport, onDelete };
-  }, [allSelected, selectedCount, onAdd, onExport, onDelete]);
+  }, [onAdd, onExport, onDelete]);
 
   // Reset first load marker when switching model type
   useEffect(() => {
@@ -67,38 +61,64 @@ function DataTable<T = any>({
     }
   }, [rowModelType]);
 
-  // Custom header component for select all - stable reference using ref for state
-  const HeaderSelectAllComponent = () => {
-    const total = gridApiRef.current?.getDisplayedRowCount() || 0;
-    const { allSelected, selectedCount } = selectionStateRef.current;
-    const indeterminate = !allSelected && selectedCount > 0 && selectedCount < total;
-    
-    const toggleSelectAll = () => {
-      if (!gridApiRef.current) return;
-      const currentAllSelected = selectionStateRef.current.allSelected;
-      
-      if (rowModelType === 'infinite') {
-        // For infinite model, manually iterate through displayed rows
-        gridApiRef.current.forEachNode((node: any) => {
-          if (node.data) { // Only select nodes with actual data (not loading placeholders)
-            node.setSelected(!currentAllSelected);
-          }
+  // Custom header component using AG Grid events (no polling)
+  const HeaderSelectAllComponent = useCallback((props: any) => {
+    const { api } = props;
+    const [selectionInfo, setSelectionInfo] = useState(() => ({ total: 0, selected: 0 }));
+
+    const recomputeSelection = useCallback(() => {
+      let total = 0;
+      let selected = 0;
+
+      if (rowModelType === 'clientSide') {
+        api.forEachNodeAfterFilterAndSort((node: any) => {
+          if (node.rowPinned === 'top' || !node.data) return;
+          total += 1;
+          if (node.isSelected()) selected += 1;
         });
       } else {
-        // For clientSide model, use built-in methods
-        if (currentAllSelected) {
-          gridApiRef.current.deselectAll();
-        } else {
-          gridApiRef.current.selectAll();
-        }
+        api.forEachNode((node: any) => {
+          if (node.rowPinned === 'top' || !node.data) return;
+          total += 1;
+          if (node.isSelected()) selected += 1;
+        });
+      }
+
+      setSelectionInfo((prev) => (prev.total === total && prev.selected === selected) ? prev : { total, selected });
+    }, [api, rowModelType]);
+
+    useEffect(() => {
+      const events = ['selectionChanged', 'rowDataUpdated', 'modelUpdated', 'filterChanged'];
+      recomputeSelection();
+      events.forEach(event => api.addEventListener(event, recomputeSelection));
+      return () => {
+        events.forEach(event => api.removeEventListener(event, recomputeSelection));
+      };
+    }, [api, recomputeSelection]);
+
+    const { total, selected } = selectionInfo;
+    const isAllSelected = total > 0 && selected === total;
+    const indeterminate = !isAllSelected && selected > 0 && selected < total;
+
+    const toggleSelectAll = () => {
+      if (rowModelType === 'clientSide') {
+        api.forEachNodeAfterFilterAndSort((node: any) => {
+          if (node.rowPinned === 'top' || !node.data) return;
+          node.setSelected(!isAllSelected);
+        });
+      } else {
+        api.forEachNode((node: any) => {
+          if (node.rowPinned === 'top' || !node.data) return;
+          node.setSelected(!isAllSelected);
+        });
       }
     };
-    
+
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-        <Tooltip title={allSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'} variant="soft" placement="bottom">
+        <Tooltip title={isAllSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'} variant="soft" placement="bottom">
           <IconButton size="sm" variant={indeterminate ? 'soft' : 'plain'} color={indeterminate ? 'warning' : 'neutral'} onClick={toggleSelectAll}>
-            {allSelected ? (
+            {isAllSelected ? (
               <DoneAllRoundedIcon sx={{ fontSize: 18 }} />
             ) : (
               <CheckBoxOutlineBlankRoundedIcon sx={{ fontSize: 18, opacity: indeterminate ? 0.6 : 1 }} />
@@ -107,7 +127,7 @@ function DataTable<T = any>({
         </Tooltip>
       </Box>
     );
-  };
+  }, [rowModelType]);
 
   // Sync filteredData when rowData changes
   useEffect(() => {
@@ -261,7 +281,7 @@ function DataTable<T = any>({
           },
         };
       }
-      // Second column (checkbox): merge all remaining for action toolbar OR loading
+      // Second column (checkbox)
       if (idx === 1) {
         return {
           ...baseCol,
@@ -346,13 +366,7 @@ function DataTable<T = any>({
           suppressRowClickSelection={true}
           rowModelType={rowModelType}
           onGridReady={({ api }) => { gridApiRef.current = api; }}
-          onSelectionChanged={useCallback(() => {
-            if (!gridApiRef.current) return;
-            const total = gridApiRef.current.getDisplayedRowCount();
-            const selected = gridApiRef.current.getSelectedNodes().length;
-            setSelectedCount(selected);
-            setAllSelected(total > 0 && selected === total);
-          }, [])}
+          // No external selection tracking needed; header listens to events
           datasource={datasource}
           cacheBlockSize={100}
           cacheOverflowSize={2}
