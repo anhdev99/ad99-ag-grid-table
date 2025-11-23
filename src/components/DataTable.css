@@ -207,3 +207,8 @@
   justify-content: center;
   width: 100%;
 }
+
+/* Add right border to first column cells for row separation */
+.ag-theme-balham .ag-center-cols-container .ag-row .ag-cell:first-child {
+  border-right: 1px solid #d0d7de;
+}
