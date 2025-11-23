@@ -2,8 +2,6 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { AgGridReact } from 'ag-grid-react';
 import { Sheet, IconButton, Box, Menu, MenuItem, Dropdown, MenuButton, ListItemDecorator, Tooltip } from '@mui/joy';
-import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded';
-import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutlineBlankRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
@@ -116,15 +114,24 @@ function DataTable<T = any>({
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-        <Tooltip title={isAllSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'} variant="soft" placement="bottom">
-          <IconButton size="sm" variant={indeterminate ? 'soft' : 'plain'} color={indeterminate ? 'warning' : 'neutral'} onClick={toggleSelectAll}>
-            {isAllSelected ? (
-              <DoneAllRoundedIcon sx={{ fontSize: 18 }} />
-            ) : (
-              <CheckBoxOutlineBlankRoundedIcon sx={{ fontSize: 18, opacity: indeterminate ? 0.6 : 1 }} />
-            )}
-          </IconButton>
-        </Tooltip>
+        <div
+          className="ag-selection-checkbox dt-header-checkbox"
+          role="checkbox"
+          aria-checked={isAllSelected}
+          aria-label={isAllSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+          onClick={toggleSelectAll}
+          style={{ cursor: 'pointer' }}
+        >
+          <span
+            className={`ag-icon ${
+              isAllSelected
+                ? 'ag-icon-checkbox-checked'
+                : indeterminate
+                  ? 'ag-icon-checkbox-indeterminate'
+                  : 'ag-icon-checkbox-unchecked'
+            }`}
+          />
+        </div>
       </Box>
     );
   }, [rowModelType]);
@@ -286,6 +293,7 @@ function DataTable<T = any>({
         return {
           ...baseCol,
           headerComponent: HeaderSelectAllComponent,
+          headerClass: 'dt-center-checkbox-header',
           checkboxSelection: (params: any) => {
             if (params.node.rowPinned === 'top') return false;
             if (!params.data) return false;
