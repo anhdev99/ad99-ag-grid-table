@@ -143,8 +143,10 @@ function DataTable<T = any>({
 
   // Default grid options
   const defaultColDef = useMemo(() => ({
-    sortable: true,
-    filter: true,
+    sortable: false,
+    filter: false,
+    suppressMenu: true,
+    suppressHeaderMenuButton: true,
     resizable: true,
   }), []);
 
@@ -211,7 +213,13 @@ function DataTable<T = any>({
     console.log('🔄 processedColumnDefs recalculated');
     return columnDefs.map((col: any, idx: number) => {
       // Apply fixed narrow width to first two columns in all modes
-      const baseCol: any = { ...col };
+      const baseCol: any = {
+        ...col,
+        sortable: false,
+        filter: false,
+        suppressMenu: true,
+        suppressHeaderMenuButton: true,
+      };
       if (idx === 0 || idx === 1) {
         baseCol.width = 40;
         baseCol.minWidth = 40;
@@ -351,7 +359,7 @@ function DataTable<T = any>({
     <Sheet 
       variant="outlined"
       className={`data-table-container ${className}`}
-      sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}
     >
       {showToolbar && (
         <TableToolbar

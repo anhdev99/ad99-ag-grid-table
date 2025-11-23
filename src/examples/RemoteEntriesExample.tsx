@@ -198,7 +198,7 @@ const RemoteEntriesExample: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '20px', minHeight: '100vh', background: '#f0f2f5' }}>
+    <div style={{ padding: '20px', minHeight: '100vh', height: '100vh', background: '#f0f2f5', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
         <span style={{ fontWeight: 600, fontSize: '14px' }}>Chế độ hiển thị:</span>
         <button 
@@ -233,7 +233,8 @@ const RemoteEntriesExample: React.FC = () => {
           ({mode === 'pagination' ? 'Phân trang với pagination' : 'Kéo xuống để load thêm'})
         </span>
       </div>
-      <DataTable
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <DataTable
           columnDefs={columnDefs}
           rowData={rowData}
           onSearch={handleSearch}
@@ -245,7 +246,7 @@ const RemoteEntriesExample: React.FC = () => {
           onDelete={handleDelete}
           showActionToolbar={true}
           searchPlaceholder="Nhập từ khóa tìm kiếm"
-          showToolbar={true}
+          showToolbar={false}
           showFilter={true}
           showRefresh={true}
           showAdvancedSearch={true}
@@ -254,6 +255,7 @@ const RemoteEntriesExample: React.FC = () => {
           domLayout="normal"
           rowModelType={mode === 'pagination' ? 'clientSide' : 'infinite'}
         />
+      </div>
     </div>
   );
 };
