@@ -104,6 +104,9 @@ function DataTable<T = any>({
         baseCol.maxWidth = 40;
         baseCol.resizable = false;
       }
+      if (rowModelType === 'infinite' && idx === 1 && baseCol.headerCheckboxSelection) {
+        delete baseCol.headerCheckboxSelection;
+      }
       // If not infinite model, only return width-adjusted columns (no special loading/pinned logic)
       if (rowModelType !== 'infinite') {
         return baseCol;
