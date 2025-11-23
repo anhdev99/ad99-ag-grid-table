@@ -27,6 +27,11 @@ export interface DataTableProps<T = any> {
   className?: string;
   rowModelType?: 'clientSide' | 'infinite';
   onFetchData?: (startRow: number, endRow: number) => Promise<{ data: T[], totalCount: number }>;
+  // Action toolbar handlers
+  onAdd?: () => void;
+  onExport?: () => void;
+  onDelete?: () => void;
+  showActionToolbar?: boolean;
 }
 
 export interface RemoteEntry {

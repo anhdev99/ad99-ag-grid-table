@@ -39,6 +39,12 @@
   color: #555;
 }
 
+/* Merged loading cell spanning entire row */
+.dt-loading-merged-left {
+  justify-content: flex-start;
+  padding-left: 6px;
+}
+
 
 /* Overlay skeleton for initial load */
 .dt-loading-overlay {
@@ -124,4 +130,47 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dt-skel-cell { animation: none; }
+}
+
+/* Pinned action toolbar row styling */
+.ag-theme-balham .ag-row-pinned {
+  background-color: #fafafa;
+  border-bottom: 2px solid #d0d7de;
+  font-weight: 500;
+}
+
+.ag-theme-balham .ag-row-pinned .ag-cell {
+  border-right: none;
+}
+
+/* Center checkbox cells */
+.ag-theme-balham .ag-cell.dt-center-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.ag-theme-balham .ag-cell.dt-center-checkbox .ag-cell-wrapper {
+  margin: 0 auto;
+  padding: 0;
+}
+.ag-theme-balham .ag-cell.dt-center-checkbox .ag-selection-checkbox {
+  margin: 0;
+}
+
+/* Left-aligned actions in pinned toolbar merged cell */
+.ag-theme-balham .ag-cell.dt-action-toolbar-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 6px;
+  gap: 6px;
+}
+
+/* Left aligned loading merged cell */
+.ag-theme-balham .ag-cell.dt-loading-align-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 6px;
 }

@@ -94,6 +94,15 @@ const RemoteEntriesExample: React.FC = () => {
   const columnDefs: ColDef[] = [
     {
       headerName: '',
+      width: 60,
+      sortable: false,
+      filter: false,
+      suppressHeaderMenuButton: true,
+      resizable: false,
+      cellStyle: { textAlign: 'center' },
+    },
+    {
+      headerName: '',
       width: 50,
       checkboxSelection: true,
       headerCheckboxSelection: true,
@@ -101,16 +110,6 @@ const RemoteEntriesExample: React.FC = () => {
       filter: false,
       suppressHeaderMenuButton: true,
       resizable: false,
-    },
-    {
-      headerName: '',
-      valueGetter: 'node.rowIndex + 1',
-      width: 60,
-      sortable: false,
-      filter: false,
-      suppressHeaderMenuButton: true,
-      resizable: false,
-      cellStyle: { textAlign: 'center' },
     },
     {
       headerName: 'Ảnh & Tên',
@@ -182,6 +181,22 @@ const RemoteEntriesExample: React.FC = () => {
     return result;
   };
 
+  // Action toolbar handlers
+  const handleAdd = () => {
+    console.log('➕ Add new entry');
+    alert('Add new entry clicked!');
+  };
+
+  const handleExport = () => {
+    console.log('📥 Export data');
+    alert('Export data clicked!');
+  };
+
+  const handleDelete = () => {
+    console.log('🗑️ Delete selected');
+    alert('Delete selected items clicked!');
+  };
+
   return (
     <div style={{ padding: '20px', minHeight: '100vh', background: '#f0f2f5' }}>
       <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -225,6 +240,10 @@ const RemoteEntriesExample: React.FC = () => {
           onRefresh={handleRefresh}
           onAdvancedSearch={handleAdvancedSearch}
           onFetchData={mode === 'infinite' ? handleFetchData : undefined}
+          onAdd={handleAdd}
+          onExport={handleExport}
+          onDelete={handleDelete}
+          showActionToolbar={true}
           searchPlaceholder="Nhập từ khóa tìm kiếm"
           showToolbar={true}
           showFilter={true}
