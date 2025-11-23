@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { AgGridReact } from 'ag-grid-react';
-import { Sheet, IconButton, Box, Menu, MenuItem, Dropdown, MenuButton, ListItemDecorator, Tooltip } from '@mui/joy';
+import { Sheet, IconButton, Box, Menu, MenuItem, Dropdown, MenuButton, ListItemDecorator } from '@mui/joy';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
@@ -37,8 +37,6 @@ function DataTable<T = any>({
   showActionToolbar = true,
 }: DataTableProps<T>) {
   const [filteredData, setFilteredData] = useState<T[]>(rowData);
-  const [initialLoading, setInitialLoading] = useState(rowModelType === 'infinite');
-  const firstLoadRef = useRef(rowModelType === 'infinite');
   const gridApiRef = useRef<any>(null);
   // Store callbacks in refs to avoid triggering processedColumnDefs changes
   const callbacksRef = useRef({ onAdd, onExport, onDelete });
@@ -47,17 +45,6 @@ function DataTable<T = any>({
   useEffect(() => {
     callbacksRef.current = { onAdd, onExport, onDelete };
   }, [onAdd, onExport, onDelete]);
-
-  // Reset first load marker when switching model type
-  useEffect(() => {
-    if (rowModelType === 'infinite') {
-      firstLoadRef.current = true;
-      setInitialLoading(true);
-    } else {
-      firstLoadRef.current = false;
-      setInitialLoading(false);
-    }
-  }, [rowModelType]);
 
   // Custom header component using AG Grid events (no polling)
   const HeaderSelectAllComponent = useCallback((props: any) => {
@@ -180,10 +167,6 @@ function DataTable<T = any>({
     
     return {
       getRows: async (params: any) => {
-        // Only show overlay for the very first request
-        if (firstLoadRef.current) {
-          setInitialLoading(true);
-        }
         const startRow = params.startRow || 0;
         const endRow = params.endRow || 100;
         try {
@@ -198,11 +181,6 @@ function DataTable<T = any>({
         } catch (error) {
           console.error('Error fetching data:', error);
           params.failCallback();
-        } finally {
-          if (firstLoadRef.current) {
-            firstLoadRef.current = false;
-            setInitialLoading(false);
-          }
         }
       }
     };
@@ -373,7 +351,7 @@ function DataTable<T = any>({
         />
       )}
       
-      <div className={`ag-theme-balham data-table-grid ${rowModelType === 'infinite' && initialLoading ? 'dt-grid-collapsed' : ''}`}> 
+      <div className="ag-theme-balham data-table-grid"> 
         <AgGridReact
           columnDefs={processedColumnDefs}
           rowData={rowModelType === 'clientSide' ? filteredData : undefined}
@@ -392,24 +370,10 @@ function DataTable<T = any>({
           cacheBlockSize={100}
           cacheOverflowSize={2}
           maxConcurrentDatasourceRequests={1}
-          /* Tăng số hàng giả ban đầu để tránh màn hình trắng khi đang tải nhanh */
-          infiniteInitialRowCount={20}
+          infiniteInitialRowCount={0}
           maxBlocksInCache={10}
           suppressLoadingOverlay={true}
-          /* Keep built-in loading for non-custom columns; could be enhanced further */
-          loadingCellRendererParams={{ loadingMessage: 'Đang tải...' }}
         />
-        {rowModelType === 'infinite' && initialLoading && (
-          <div className="dt-loading-overlay" role="status" aria-live="polite">
-            <ClipLoader size={42} color="#1890ff" speedMultiplier={1} />
-            <p>Đang tải dữ liệu...</p>
-            <div className="dt-skeleton-grid">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="dt-skeleton-full-row" />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </Sheet>
   );
