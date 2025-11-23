@@ -9,6 +9,14 @@ export interface DataTableContextMenuItem {
   action: () => void;
 }
 
+export interface DataTableRowAction<T = any> {
+  key: string;
+  label: string;
+  icon?: ReactNode;
+  color?: 'primary' | 'neutral' | 'danger';
+  onClick?: (rowData: T) => void;
+}
+
 export interface DataTableProps<T = any> {
   columnDefs: ColDef[];
   rowData: T[];
@@ -24,6 +32,7 @@ export interface DataTableProps<T = any> {
   onDelete?: (selectedRows: T[]) => void;
   showActionToolbar?: boolean;
   contextMenuItems?: DataTableContextMenuItem[];
+  getRowActions?: (rowData: T) => DataTableRowAction<T>[];
 }
 
 export interface RemoteEntry {

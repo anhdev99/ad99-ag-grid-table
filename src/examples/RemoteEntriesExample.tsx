@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { ColDef } from 'ag-grid-community';
 import DataTable from '../components/DataTable';
 import { RemoteEntry } from '../types/table.types';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
 // Fake API service with delay
 const fakeApiService = {
@@ -191,6 +194,28 @@ const RemoteEntriesExample: React.FC = () => {
     alert(`Delete (${selectedRows.length}): ${message}`);
   };
 
+  const rowActions = (row: RemoteEntry) => ([
+    {
+      key: 'edit',
+      label: 'Chỉnh sửa',
+      icon: <EditRoundedIcon fontSize="small" />,
+      onClick: () => alert(`Edit ${row.name}`),
+    },
+    {
+      key: 'copy',
+      label: 'Sao chép',
+      icon: <ContentCopyRoundedIcon fontSize="small" />,
+      onClick: () => alert(`Copy ${row.name}`),
+    },
+    {
+      key: 'delete',
+      label: 'Xóa',
+      color: 'danger' as const,
+      icon: <DeleteRoundedIcon fontSize="small" />,
+      onClick: () => alert(`Delete ${row.name}`),
+    },
+  ]);
+
   return (
     <div style={{ padding: '20px', minHeight: '100vh', height: '100vh', background: '#f0f2f5', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -235,6 +260,7 @@ const RemoteEntriesExample: React.FC = () => {
           onAdd={handleAdd}
           onExport={handleExport}
           onDelete={handleDelete}
+          getRowActions={rowActions}
           showActionToolbar={true}
           pagination={mode === 'pagination'}
           paginationPageSize={50}

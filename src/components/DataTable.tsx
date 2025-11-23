@@ -8,7 +8,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import { DataTableContextMenuItem, DataTableProps } from '../types/table.types';
+import { DataTableContextMenuItem, DataTableProps, DataTableRowAction } from '../types/table.types';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-balham.css';
 import './DataTable.css';
@@ -27,6 +27,7 @@ function DataTable<T = any>({
   onDelete,
   showActionToolbar = true,
   contextMenuItems,
+  getRowActions,
 }: DataTableProps<T>) {
   const gridApiRef = useRef<any>(null);
   const [selectedCount, setSelectedCount] = useState(0);
@@ -334,24 +335,25 @@ function DataTable<T = any>({
                     className="dt-row-menu"
                     sx={{ minWidth: 170, py: 0.5 }}
                   >
-                    <MenuItem sx={{ gap: 1.25, py: 0.75 }}>
-                      <ListItemDecorator sx={{ color: 'neutral.plainColor' }}>
-                        <EditRoundedIcon fontSize="small" />
-                      </ListItemDecorator>
-                      Chỉnh sửa
-                    </MenuItem>
-                    <MenuItem sx={{ gap: 1.25, py: 0.75 }}>
-                      <ListItemDecorator sx={{ color: 'neutral.plainColor' }}>
-                        <ContentCopyRoundedIcon fontSize="small" />
-                      </ListItemDecorator>
-                      Sao chép
-                    </MenuItem>
-                    <MenuItem color="danger" sx={{ gap: 1.25, py: 0.75 }}>
-                      <ListItemDecorator sx={{ color: 'danger.plainColor' }}>
-                        <DeleteRoundedIcon fontSize="small" />
-                      </ListItemDecorator>
-                      Xóa
-                    </MenuItem>
+                    {(getRowActions?.(params.data) ?? ([
+                      { key: 'edit', label: 'Chỉnh sửa', icon: <EditRoundedIcon fontSize="small" /> },
+                      { key: 'copy', label: 'Sao chép', icon: <ContentCopyRoundedIcon fontSize="small" /> },
+                      { key: 'delete', label: 'Xóa', icon: <DeleteRoundedIcon fontSize="small" />, color: 'danger' },
+                    ] as DataTableRowAction<T>[])).map((action) => (
+                      <MenuItem
+                        key={action.key}
+                        color={action.color === 'danger' ? 'danger' : 'neutral'}
+                        sx={{ gap: 1.25, py: 0.75 }}
+                        onClick={() => action.onClick?.(params.data)}
+                      >
+                        {action.icon && (
+                          <ListItemDecorator sx={{ color: action.color === 'danger' ? 'danger.plainColor' : 'neutral.plainColor' }}>
+                            {action.icon}
+                          </ListItemDecorator>
+                        )}
+                        {action.label}
+                      </MenuItem>
+                    ))}
                   </Menu>
                 </Dropdown>
               </Box>
