@@ -8,7 +8,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import { DataTableProps } from '../types/table.types';
+import { DataTableContextMenuItem, DataTableProps } from '../types/table.types';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-balham.css';
 import './DataTable.css';
@@ -26,9 +26,16 @@ function DataTable<T = any>({
   onExport,
   onDelete,
   showActionToolbar = true,
+  contextMenuItems,
 }: DataTableProps<T>) {
   const gridApiRef = useRef<any>(null);
   const [selectedCount, setSelectedCount] = useState(0);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [lastCellContext, setLastCellContext] = useState<any>(null);
+  const contextMenuRef = useRef<HTMLDivElement | null>(null);
+  const preventBrowserContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+  }, []);
   // Store callbacks in refs to avoid triggering processedColumnDefs changes
   const callbacksRef = useRef<{
     onAdd?: DataTableProps<T>['onAdd'];
@@ -157,6 +164,10 @@ function DataTable<T = any>({
     return gridApiRef.current.getSelectedRows() as T[];
   }, []);
 
+  const getContextMenuItems = useCallback(() => {
+    return ['copy', 'copyWithHeaders'];
+  }, []);
+
   const handleExportClick = useCallback(() => {
     const selectedRows = getSelectedRows();
     callbacksRef.current.onExport?.(selectedRows);
@@ -167,9 +178,84 @@ function DataTable<T = any>({
     callbacksRef.current.onDelete?.(selectedRows);
   }, [getSelectedRows]);
 
+  const handleCellContextMenu = useCallback((cellEvent: any) => {
+    const mouseEvent = cellEvent?.event;
+    if (mouseEvent?.preventDefault) {
+      mouseEvent.preventDefault();
+      setLastCellContext(cellEvent);
+      setContextMenu({ x: mouseEvent.clientX, y: mouseEvent.clientY });
+    }
+  }, []);
+
+  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+
+  const copyTextToClipboard = useCallback((text: string) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {
+        // fallback below
+      });
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }, []);
+
+  const copyRows = useCallback((includeHeaders = false) => {
+    const api = gridApiRef.current;
+    const selected = getSelectedRows();
+    if (api?.copySelectedRowsToClipboard) {
+      if (selected.length > 0) {
+        api.copySelectedRowsToClipboard({ includeHeaders });
+        return;
+      }
+    }
+
+    if (lastCellContext) {
+      const headerText =
+        includeHeaders
+          ? lastCellContext.colDef?.headerName
+            ?? lastCellContext.column?.getColId?.()
+            ?? ''
+          : '';
+      const cellText = lastCellContext.value ?? '';
+      const text = includeHeaders ? `${headerText}\n${cellText}` : String(cellText);
+      copyTextToClipboard(text);
+    }
+  }, [getSelectedRows, lastCellContext, copyTextToClipboard]);
+
+  const defaultContextMenuItems: DataTableContextMenuItem[] = useMemo(() => ([
+    { key: 'copy', label: 'Sao chép', shortcut: 'Ctrl+C', icon: <ContentCopyRoundedIcon fontSize="small" />, action: () => copyRows(false) },
+    { key: 'copyHeaders', label: 'Sao chép kèm tiêu đề', shortcut: '', icon: <ContentCopyRoundedIcon fontSize="small" />, action: () => copyRows(true) },
+  ]), [copyRows]);
+
+  const effectiveContextMenuItems = useMemo(
+    () => contextMenuItems ?? defaultContextMenuItems,
+    [contextMenuItems, defaultContextMenuItems]
+  );
+
   const handleSelectionChanged = useCallback(() => {
     setSelectedCount(getSelectedRows().length);
   }, [getSelectedRows]);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (contextMenuRef.current && contextMenuRef.current.contains(e.target as Node)) return;
+      setContextMenu(null);
+    };
+    window.addEventListener('mousedown', handleGlobalClick);
+    window.addEventListener('scroll', closeContextMenu, true);
+    return () => {
+      window.removeEventListener('mousedown', handleGlobalClick);
+      window.removeEventListener('scroll', closeContextMenu, true);
+    };
+  }, [contextMenu, closeContextMenu]);
 
   // Inject custom loading cell renderer + action toolbar for first two technical columns
   const processedColumnDefs = useMemo(() => {
@@ -343,7 +429,10 @@ function DataTable<T = any>({
       className={`data-table-container ${className}`}
       sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}
     >
-      <div className="ag-theme-balham data-table-grid"> 
+      <div
+        className="ag-theme-balham data-table-grid"
+        onContextMenu={preventBrowserContextMenu}
+      > 
         <AgGridReact
           columnDefs={processedColumnDefs}
           rowData={rowModelType === 'clientSide' ? rowData : undefined}
@@ -357,6 +446,8 @@ function DataTable<T = any>({
           suppressRowClickSelection={true}
           rowModelType={rowModelType}
           onGridReady={({ api }) => { gridApiRef.current = api; }}
+          getContextMenuItems={getContextMenuItems}
+          onCellContextMenu={handleCellContextMenu}
           onSelectionChanged={handleSelectionChanged}
           // No external selection tracking needed; header listens to events
           datasource={datasource}
@@ -367,6 +458,26 @@ function DataTable<T = any>({
           maxBlocksInCache={10}
           suppressLoadingOverlay={true}
         />
+        {contextMenu && (
+          <div
+            className="dt-context-menu"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+            role="menu"
+            ref={contextMenuRef}
+          >
+            {effectiveContextMenuItems.map((item) => (
+              <button
+                key={item.key}
+                className="dt-context-menu-item"
+                onClick={() => { item.action(); closeContextMenu(); }}
+              >
+                <span className="dt-context-icon">{item.icon}</span>
+                <span className="dt-context-label">{item.label}</span>
+                {item.shortcut && <span className="dt-context-shortcut">{item.shortcut}</span>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </Sheet>
   );

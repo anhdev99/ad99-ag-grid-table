@@ -1,4 +1,13 @@
 import { ColDef } from 'ag-grid-community';
+import { ReactNode } from 'react';
+
+export interface DataTableContextMenuItem {
+  key: string;
+  label: string;
+  shortcut?: string;
+  icon?: ReactNode;
+  action: () => void;
+}
 
 export interface DataTableProps<T = any> {
   columnDefs: ColDef[];
@@ -14,6 +23,7 @@ export interface DataTableProps<T = any> {
   onExport?: (selectedRows: T[]) => void;
   onDelete?: (selectedRows: T[]) => void;
   showActionToolbar?: boolean;
+  contextMenuItems?: DataTableContextMenuItem[];
 }
 
 export interface RemoteEntry {
