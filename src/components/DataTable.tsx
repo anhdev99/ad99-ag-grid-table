@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { AgGridReact } from 'ag-grid-react';
-import { Panel } from 'rsuite';
+import { Sheet } from '@mui/joy';
 import TableToolbar from './TableToolbar';
 import { DataTableProps } from '../types/table.types';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -124,10 +124,10 @@ function DataTable<T = any>({
   }, [columnDefs, rowModelType]);
 
   return (
-    <Panel 
-      bordered 
+    <Sheet 
+      variant="outlined"
       className={`data-table-container ${className}`}
-      bodyFill
+      sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       {showToolbar && (
         <TableToolbar
@@ -203,7 +203,7 @@ function DataTable<T = any>({
           </div>
         )}
       </div>
-    </Panel>
+    </Sheet>
   );
 }
 

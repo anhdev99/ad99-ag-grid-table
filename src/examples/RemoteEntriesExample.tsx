@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ColDef } from 'ag-grid-community';
 import DataTable from '../components/DataTable';
 import { RemoteEntry } from '../types/table.types';
-import 'rsuite/dist/rsuite.min.css';
 
 // Fake API service with delay
 const fakeApiService = {

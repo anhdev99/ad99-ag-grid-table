@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Input, InputGroup, Button } from 'rsuite';
-import SearchIcon from '@rsuite/icons/Search';
-import ReloadIcon from '@rsuite/icons/Reload';
+import { Input, IconButton, Button, Box } from '@mui/joy';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import { TableToolbarProps } from '../types/table.types';
 import './TableToolbar.css';
 
@@ -36,27 +36,25 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
   };
 
   return (
-    <div className="table-toolbar">
-      <div className="toolbar-container">
-        <div className="toolbar-left">
-          <InputGroup inside className="search-input">
-            <Input
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={handleSearchChange}
-            />
-            <InputGroup.Button>
-              <SearchIcon />
-            </InputGroup.Button>
-          </InputGroup>
-        </div>
+    <Box className="table-toolbar">
+      <Box className="toolbar-container">
+        <Box className="toolbar-left">
+          <Input
+            placeholder={searchPlaceholder}
+            value={searchValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            startDecorator={<SearchRoundedIcon />}
+            size="sm"
+            sx={{ width: 300 }}
+          />
+        </Box>
         
-        <div className="toolbar-actions">
+        <Box className="toolbar-actions">
           {showFilter && (
             <Button 
-              appearance="default" 
-              className="toolbar-button"
-              size="md"
+              variant="outlined"
+              color="neutral"
+              size="sm"
             >
               Tìm kiếm
             </Button>
@@ -64,28 +62,30 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
           
           {showRefresh && (
             <Button 
-              appearance="default" 
+              variant="outlined"
+              color="neutral"
               onClick={handleRefresh}
-              className="toolbar-button"
-              size="md"
+              startDecorator={<RefreshRoundedIcon />}
+              size="sm"
             >
-              <ReloadIcon /> Làm mới
+              Làm mới
             </Button>
           )}
           
           {showAdvancedSearch && (
             <Button 
-              appearance="primary" 
+              variant="solid"
+              color="primary"
               onClick={handleAdvancedSearch}
-              className="toolbar-button-primary"
-              size="md"
+              startDecorator={<SearchRoundedIcon />}
+              size="sm"
             >
-              <SearchIcon /> Tìm kiếm nâng cao
+              Tìm kiếm nâng cao
             </Button>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
