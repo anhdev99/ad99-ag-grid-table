@@ -1,0 +1,148 @@
+# Reusable AG-Grid Table Component
+
+Component table có thể tái sử dụng được xây dựng với React, RSuite và AG-Grid.
+
+## 🎯 Tính năng
+
+- ✅ Component DataTable có thể tái sử dụng
+- ✅ Toolbar với tìm kiếm, làm mới, tìm kiếm nâng cao
+- ✅ Hỗ trợ TypeScript đầy đủ
+- ✅ Responsive design
+- ✅ Pagination tích hợp
+- ✅ Column sorting & filtering
+- ✅ Row selection (single/multiple)
+- ✅ Custom cell renderers
+- ✅ Icon support
+
+## 📦 Cài đặt
+
+```bash
+npm install
+```
+
+## 🚀 Chạy ứng dụng
+
+```bash
+npm run dev
+```
+
+## 📖 Cách sử dụng
+
+### 1. Import component
+
+```tsx
+import { DataTable } from './components';
+import { ColDef } from 'ag-grid-community';
+import 'rsuite/dist/rsuite.min.css';
+```
+
+### 2. Define column definitions
+
+```tsx
+const columnDefs: ColDef[] = [
+  {
+    headerName: 'Tên',
+    field: 'name',
+    flex: 1,
+  },
+  {
+    headerName: 'Mã',
+    field: 'code',
+    flex: 1,
+  },
+  // ... thêm columns
+];
+```
+
+### 3. Sử dụng DataTable component
+
+```tsx
+<DataTable
+  columnDefs={columnDefs}
+  rowData={data}
+  onSearch={(value) => console.log('Search:', value)}
+  onRefresh={() => console.log('Refresh')}
+  onAdvancedSearch={() => console.log('Advanced Search')}
+  searchPlaceholder="Nhập từ khóa tìm kiếm"
+  pagination={true}
+  paginationPageSize={20}
+/>
+```
+
+## 🎨 Tùy chỉnh
+
+### DataTable Props
+
+| Prop | Type | Default | Mô tả |
+|------|------|---------|-------|
+| `columnDefs` | `ColDef[]` | required | Định nghĩa các cột |
+| `rowData` | `T[]` | required | Dữ liệu hiển thị |
+| `onSearch` | `(value: string) => void` | - | Callback khi search |
+| `onRefresh` | `() => void` | - | Callback khi refresh |
+| `onAdvancedSearch` | `() => void` | - | Callback khi advanced search |
+| `searchPlaceholder` | `string` | "Nhập từ khóa tìm kiếm" | Placeholder cho search input |
+| `showToolbar` | `boolean` | `true` | Hiển thị toolbar |
+| `showFilter` | `boolean` | `true` | Hiển thị nút filter |
+| `showRefresh` | `boolean` | `true` | Hiển thị nút refresh |
+| `showAdvancedSearch` | `boolean` | `true` | Hiển thị nút advanced search |
+| `pagination` | `boolean` | `true` | Enable pagination |
+| `paginationPageSize` | `number` | `20` | Số rows mỗi page |
+| `className` | `string` | `''` | Custom CSS class |
+
+### Custom Cell Renderers
+
+```tsx
+const CustomCellRenderer = (params: any) => {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <span>{params.value}</span>
+    </div>
+  );
+};
+
+const columnDefs: ColDef[] = [
+  {
+    headerName: 'Name',
+    field: 'name',
+    cellRenderer: CustomCellRenderer,
+  },
+];
+```
+
+## 📁 Cấu trúc thư mục
+
+```
+src/
+├── components/
+│   ├── DataTable.tsx          # Main table component
+│   ├── DataTable.css
+│   ├── TableToolbar.tsx       # Toolbar component
+│   ├── TableToolbar.css
+│   └── index.ts
+├── types/
+│   └── table.types.ts         # TypeScript types
+├── examples/
+│   └── RemoteEntriesExample.tsx  # Example usage
+├── main.tsx
+└── index.css
+```
+
+## 🔧 Công nghệ sử dụng
+
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **AG-Grid** - Advanced data grid
+- **RSuite** - UI component library
+- **Vite** - Build tool
+
+## 📝 Ví dụ
+
+Xem file `src/examples/RemoteEntriesExample.tsx` để biết cách sử dụng chi tiết.
+
+## 🤝 Đóng góp
+
+Feel free to submit issues and enhancement requests!
+
+## 📄 License
+
+MIT
