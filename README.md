@@ -5,6 +5,7 @@ Component table có thể tái sử dụng được xây dựng với React, RSu
 ## 🎯 Tính năng
 
 - ✅ Component DataTable có thể tái sử dụng
+- ✅ Action toolbar (Thêm/Xuất/Xóa) ngay trong bảng
 - ✅ Hỗ trợ TypeScript đầy đủ
 - ✅ Responsive design
 - ✅ Pagination tích hợp
@@ -59,6 +60,9 @@ const columnDefs: ColDef[] = [
 <DataTable
   columnDefs={columnDefs}
   rowData={data}
+  onAdd={() => console.log('Add')}
+  onExport={(selected) => console.log('Export', selected)}
+  onDelete={(selected) => console.log('Delete', selected)}
   pagination={true}
   paginationPageSize={20}
 />
@@ -79,8 +83,8 @@ const columnDefs: ColDef[] = [
 | `rowModelType` | `'clientSide' \| 'infinite'` | `'clientSide'` | Chế độ load dữ liệu |
 | `onFetchData` | `(startRow: number, endRow: number) => Promise<{ data: T[]; totalCount: number }>` | - | Callback fetch data khi chạy infinite scroll |
 | `onAdd` | `() => void` | - | Callback cho nút thêm ở action toolbar (pinned row) |
-| `onExport` | `() => void` | - | Callback cho nút export ở action toolbar |
-| `onDelete` | `() => void` | - | Callback cho nút xóa ở action toolbar |
+| `onExport` | `(selectedRows: T[]) => void` | - | Callback cho nút export, nhận danh sách rows đang được chọn |
+| `onDelete` | `(selectedRows: T[]) => void` | - | Callback cho nút xóa, nhận danh sách rows đang được chọn |
 | `showActionToolbar` | `boolean` | `true` | Hiển thị hàng pinned với các nút hành động |
 
 ### Custom Cell Renderers

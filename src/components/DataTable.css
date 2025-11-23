@@ -112,7 +112,7 @@
 }
 
 /* Add right border to first column cells for row separation */
-.ag-theme-balham .ag-center-cols-container .ag-row .ag-cell:first-child {
+.ag-theme-balham .ag-cell.dt-first-col {
   border-right: 1px solid #d0d7de;
 }
 

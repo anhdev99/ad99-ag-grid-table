@@ -175,14 +175,20 @@ const RemoteEntriesExample: React.FC = () => {
     alert('Add new entry clicked!');
   };
 
-  const handleExport = () => {
-    console.log('📥 Export data');
-    alert('Export data clicked!');
+  const handleExport = (selectedRows: RemoteEntry[]) => {
+    console.log('📥 Export data', selectedRows);
+    const message = selectedRows.length
+      ? selectedRows.map((row) => row.name).join(', ')
+      : 'Không có bản ghi nào được chọn';
+    alert(`Export (${selectedRows.length}): ${message}`);
   };
 
-  const handleDelete = () => {
-    console.log('🗑️ Delete selected');
-    alert('Delete selected items clicked!');
+  const handleDelete = (selectedRows: RemoteEntry[]) => {
+    console.log('🗑️ Delete selected', selectedRows);
+    const message = selectedRows.length
+      ? selectedRows.map((row) => row.name).join(', ')
+      : 'Không có bản ghi nào được chọn';
+    alert(`Delete (${selectedRows.length}): ${message}`);
   };
 
   return (

@@ -11,8 +11,8 @@ export interface DataTableProps<T = any> {
   onFetchData?: (startRow: number, endRow: number) => Promise<{ data: T[], totalCount: number }>;
   // Action toolbar handlers
   onAdd?: () => void;
-  onExport?: () => void;
-  onDelete?: () => void;
+  onExport?: (selectedRows: T[]) => void;
+  onDelete?: (selectedRows: T[]) => void;
   showActionToolbar?: boolean;
 }
 

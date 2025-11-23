@@ -28,8 +28,13 @@ function DataTable<T = any>({
   showActionToolbar = true,
 }: DataTableProps<T>) {
   const gridApiRef = useRef<any>(null);
+  const [selectedCount, setSelectedCount] = useState(0);
   // Store callbacks in refs to avoid triggering processedColumnDefs changes
-  const callbacksRef = useRef({ onAdd, onExport, onDelete });
+  const callbacksRef = useRef<{
+    onAdd?: DataTableProps<T>['onAdd'];
+    onExport?: DataTableProps<T>['onExport'];
+    onDelete?: DataTableProps<T>['onDelete'];
+  }>({ onAdd, onExport, onDelete });
 
   // Keep refs in sync
   useEffect(() => {
@@ -147,9 +152,38 @@ function DataTable<T = any>({
     };
   }, [rowModelType, onFetchData, rowData]);
 
+  const getSelectedRows = useCallback((): T[] => {
+    if (!gridApiRef.current?.getSelectedRows) return [];
+    return gridApiRef.current.getSelectedRows() as T[];
+  }, []);
+
+  const handleExportClick = useCallback(() => {
+    const selectedRows = getSelectedRows();
+    callbacksRef.current.onExport?.(selectedRows);
+  }, [getSelectedRows]);
+
+  const handleDeleteClick = useCallback(() => {
+    const selectedRows = getSelectedRows();
+    callbacksRef.current.onDelete?.(selectedRows);
+  }, [getSelectedRows]);
+
+  const handleSelectionChanged = useCallback(() => {
+    setSelectedCount(getSelectedRows().length);
+  }, [getSelectedRows]);
+
   // Inject custom loading cell renderer + action toolbar for first two technical columns
   const processedColumnDefs = useMemo(() => {
     console.log('🔄 processedColumnDefs recalculated');
+
+    const addFirstColClass = (cellClass: any) => {
+      return (params: any) => {
+        const resolved = typeof cellClass === 'function' ? cellClass(params) : cellClass;
+        if (Array.isArray(resolved)) return [...resolved, 'dt-first-col'];
+        if (resolved) return [resolved, 'dt-first-col'];
+        return 'dt-first-col';
+      };
+    };
+
     return columnDefs.map((col: any, idx: number) => {
       // Apply fixed narrow width to first two columns in all modes
       const baseCol: any = {
@@ -164,6 +198,9 @@ function DataTable<T = any>({
         baseCol.minWidth = 40;
         baseCol.maxWidth = 40;
         baseCol.resizable = false;
+      }
+      if (idx === 0) {
+        baseCol.cellClass = addFirstColClass(col.cellClass);
       }
       if (rowModelType === 'infinite' && idx === 1 && baseCol.headerCheckboxSelection) {
         delete baseCol.headerCheckboxSelection;
@@ -255,10 +292,16 @@ function DataTable<T = any>({
             if (params.node.rowPinned === 'top' && showActionToolbar) {
               return (
                 <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-start', px: 1.25, height: '100%', width: '100%' }}>
-                  <IconButton size="sm" variant="plain" color="neutral" onClick={() => callbacksRef.current.onExport?.()}>
+                  <IconButton size="sm" variant="plain" color="neutral" onClick={handleExportClick}>
                     <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
                   </IconButton>
-                  <IconButton size="sm" variant="plain" color="danger" onClick={() => callbacksRef.current.onDelete?.()}>
+                  <IconButton
+                    size="sm"
+                    variant="plain"
+                    color="danger"
+                    onClick={handleDeleteClick}
+                    disabled={selectedCount === 0}
+                  >
                     <DeleteRoundedIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                 </Box>
@@ -292,7 +335,7 @@ function DataTable<T = any>({
         },
       };
     });
-  }, [columnDefs, rowModelType, showActionToolbar]);
+  }, [columnDefs, rowModelType, showActionToolbar, handleDeleteClick, handleExportClick, selectedCount]);
 
   return (
     <Sheet 
@@ -314,6 +357,7 @@ function DataTable<T = any>({
           suppressRowClickSelection={true}
           rowModelType={rowModelType}
           onGridReady={({ api }) => { gridApiRef.current = api; }}
+          onSelectionChanged={handleSelectionChanged}
           // No external selection tracking needed; header listens to events
           datasource={datasource}
           cacheBlockSize={100}
