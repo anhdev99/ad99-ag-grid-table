@@ -161,18 +161,6 @@ const RemoteEntriesExample: React.FC = () => {
 
   const [mode, setMode] = useState<'pagination' | 'infinite'>('infinite');
 
-  const handleSearch = (value: string) => {
-    console.log('Search:', value);
-  };
-
-  const handleRefresh = () => {
-    console.log('Refreshing data...');
-  };
-
-  const handleAdvancedSearch = () => {
-    console.log('Opening advanced search...');
-  };
-
   // Handle fetch data for infinite scroll
   const handleFetchData = async (startRow: number, endRow: number) => {
     console.log(`📡 Fetching rows ${startRow} to ${endRow}...`);
@@ -237,19 +225,11 @@ const RemoteEntriesExample: React.FC = () => {
         <DataTable
           columnDefs={columnDefs}
           rowData={rowData}
-          onSearch={handleSearch}
-          onRefresh={handleRefresh}
-          onAdvancedSearch={handleAdvancedSearch}
           onFetchData={mode === 'infinite' ? handleFetchData : undefined}
           onAdd={handleAdd}
           onExport={handleExport}
           onDelete={handleDelete}
           showActionToolbar={true}
-          searchPlaceholder="Nhập từ khóa tìm kiếm"
-          showToolbar={false}
-          showFilter={true}
-          showRefresh={true}
-          showAdvancedSearch={true}
           pagination={mode === 'pagination'}
           paginationPageSize={50}
           domLayout="normal"

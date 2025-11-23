@@ -8,7 +8,6 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import TableToolbar from './TableToolbar';
 import { DataTableProps } from '../types/table.types';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-balham.css';
@@ -17,14 +16,6 @@ import './DataTable.css';
 function DataTable<T = any>({
   columnDefs,
   rowData,
-  onSearch,
-  onRefresh,
-  onAdvancedSearch,
-  searchPlaceholder = 'Nhập từ khóa tìm kiếm',
-  showToolbar = true,
-  showFilter = true,
-  showRefresh = true,
-  showAdvancedSearch = true,
   pagination = true,
   paginationPageSize = 20,
   domLayout = 'autoHeight',
@@ -36,7 +27,6 @@ function DataTable<T = any>({
   onDelete,
   showActionToolbar = true,
 }: DataTableProps<T>) {
-  const [filteredData, setFilteredData] = useState<T[]>(rowData);
   const gridApiRef = useRef<any>(null);
   // Store callbacks in refs to avoid triggering processedColumnDefs changes
   const callbacksRef = useRef({ onAdd, onExport, onDelete });
@@ -123,11 +113,6 @@ function DataTable<T = any>({
     );
   }, [rowModelType]);
 
-  // Sync filteredData when rowData changes
-  useEffect(() => {
-    setFilteredData(rowData);
-  }, [rowData]);
-
   // Default grid options
   const defaultColDef = useMemo(() => ({
     sortable: false,
@@ -136,30 +121,6 @@ function DataTable<T = any>({
     suppressHeaderMenuButton: true,
     resizable: true,
   }), []);
-
-  // Handle search from toolbar
-  const handleSearch = useCallback((searchValue: string) => {
-    if (!searchValue) {
-      setFilteredData(rowData);
-      if (onSearch) onSearch(searchValue);
-      return;
-    }
-
-    const filtered = rowData.filter((row: any) => {
-      return Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(searchValue.toLowerCase())
-      );
-    });
-    
-    setFilteredData(filtered);
-    if (onSearch) onSearch(searchValue);
-  }, [rowData, onSearch]);
-
-  // Handle refresh
-  const handleRefresh = useCallback(() => {
-    setFilteredData(rowData);
-    if (onRefresh) onRefresh();
-  }, [rowData, onRefresh]);
 
   // Memoize datasource to prevent re-creation on every render
   const datasource = useMemo(() => {
@@ -174,8 +135,8 @@ function DataTable<T = any>({
             const result = await onFetchData(startRow, endRow);
             params.successCallback(result.data, result.totalCount);
           } else {
-            const rowsThisPage = filteredData.slice(startRow, endRow);
-            const lastRow = filteredData.length;
+            const rowsThisPage = rowData.slice(startRow, endRow);
+            const lastRow = rowData.length;
             params.successCallback(rowsThisPage, lastRow);
           }
         } catch (error) {
@@ -184,7 +145,7 @@ function DataTable<T = any>({
         }
       }
     };
-  }, [rowModelType, onFetchData, filteredData]);
+  }, [rowModelType, onFetchData, rowData]);
 
   // Inject custom loading cell renderer + action toolbar for first two technical columns
   const processedColumnDefs = useMemo(() => {
@@ -339,22 +300,10 @@ function DataTable<T = any>({
       className={`data-table-container ${className}`}
       sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}
     >
-      {showToolbar && (
-        <TableToolbar
-          onSearch={handleSearch}
-          onRefresh={handleRefresh}
-          onAdvancedSearch={onAdvancedSearch}
-          searchPlaceholder={searchPlaceholder}
-          showFilter={showFilter}
-          showRefresh={showRefresh}
-          showAdvancedSearch={showAdvancedSearch}
-        />
-      )}
-      
       <div className="ag-theme-balham data-table-grid"> 
         <AgGridReact
           columnDefs={processedColumnDefs}
-          rowData={rowModelType === 'clientSide' ? filteredData : undefined}
+          rowData={rowModelType === 'clientSide' ? rowData : undefined}
           pinnedTopRowData={showActionToolbar ? [{ __actionToolbar: true }] : undefined}
           defaultColDef={defaultColDef}
           pagination={rowModelType === 'clientSide' ? pagination : false}

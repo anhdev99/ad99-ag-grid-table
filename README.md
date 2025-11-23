@@ -5,7 +5,6 @@ Component table có thể tái sử dụng được xây dựng với React, RSu
 ## 🎯 Tính năng
 
 - ✅ Component DataTable có thể tái sử dụng
-- ✅ Toolbar với tìm kiếm, làm mới, tìm kiếm nâng cao
 - ✅ Hỗ trợ TypeScript đầy đủ
 - ✅ Responsive design
 - ✅ Pagination tích hợp
@@ -60,10 +59,6 @@ const columnDefs: ColDef[] = [
 <DataTable
   columnDefs={columnDefs}
   rowData={data}
-  onSearch={(value) => console.log('Search:', value)}
-  onRefresh={() => console.log('Refresh')}
-  onAdvancedSearch={() => console.log('Advanced Search')}
-  searchPlaceholder="Nhập từ khóa tìm kiếm"
   pagination={true}
   paginationPageSize={20}
 />
@@ -77,17 +72,16 @@ const columnDefs: ColDef[] = [
 |------|------|---------|-------|
 | `columnDefs` | `ColDef[]` | required | Định nghĩa các cột |
 | `rowData` | `T[]` | required | Dữ liệu hiển thị |
-| `onSearch` | `(value: string) => void` | - | Callback khi search |
-| `onRefresh` | `() => void` | - | Callback khi refresh |
-| `onAdvancedSearch` | `() => void` | - | Callback khi advanced search |
-| `searchPlaceholder` | `string` | "Nhập từ khóa tìm kiếm" | Placeholder cho search input |
-| `showToolbar` | `boolean` | `true` | Hiển thị toolbar |
-| `showFilter` | `boolean` | `true` | Hiển thị nút filter |
-| `showRefresh` | `boolean` | `true` | Hiển thị nút refresh |
-| `showAdvancedSearch` | `boolean` | `true` | Hiển thị nút advanced search |
 | `pagination` | `boolean` | `true` | Enable pagination |
 | `paginationPageSize` | `number` | `20` | Số rows mỗi page |
+| `domLayout` | `'normal' \| 'autoHeight' \| 'print'` | `'autoHeight'` | Chế độ layout của AG Grid |
 | `className` | `string` | `''` | Custom CSS class |
+| `rowModelType` | `'clientSide' \| 'infinite'` | `'clientSide'` | Chế độ load dữ liệu |
+| `onFetchData` | `(startRow: number, endRow: number) => Promise<{ data: T[]; totalCount: number }>` | - | Callback fetch data khi chạy infinite scroll |
+| `onAdd` | `() => void` | - | Callback cho nút thêm ở action toolbar (pinned row) |
+| `onExport` | `() => void` | - | Callback cho nút export ở action toolbar |
+| `onDelete` | `() => void` | - | Callback cho nút xóa ở action toolbar |
+| `showActionToolbar` | `boolean` | `true` | Hiển thị hàng pinned với các nút hành động |
 
 ### Custom Cell Renderers
 
@@ -116,8 +110,6 @@ src/
 ├── components/
 │   ├── DataTable.tsx          # Main table component
 │   ├── DataTable.css
-│   ├── TableToolbar.tsx       # Toolbar component
-│   ├── TableToolbar.css
 │   └── index.ts
 ├── types/
 │   └── table.types.ts         # TypeScript types
