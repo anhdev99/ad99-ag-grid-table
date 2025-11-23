@@ -5,7 +5,7 @@ import { Sheet, IconButton, Box, Menu, MenuItem, Dropdown, MenuButton, ListItemD
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import TableToolbar from './TableToolbar';
@@ -256,23 +256,28 @@ function DataTable<T = any>({
                     slots={{ root: IconButton }}
                     slotProps={{ root: { size: 'sm', variant: 'plain', color: 'neutral' } }}
                   >
-                    <MoreVertIcon sx={{ fontSize: 18 }} />
+                    <MoreHorizIcon sx={{ fontSize: 18 }} />
                   </MenuButton>
-                  <Menu size="sm" placement="bottom-start">
-                    <MenuItem>
-                      <ListItemDecorator>
+                  <Menu
+                    size="sm"
+                    placement="bottom-start"
+                    className="dt-row-menu"
+                    sx={{ minWidth: 170, py: 0.5 }}
+                  >
+                    <MenuItem sx={{ gap: 1.25, py: 0.75 }}>
+                      <ListItemDecorator sx={{ color: 'neutral.plainColor' }}>
                         <EditRoundedIcon fontSize="small" />
                       </ListItemDecorator>
                       Chỉnh sửa
                     </MenuItem>
-                    <MenuItem>
-                      <ListItemDecorator>
+                    <MenuItem sx={{ gap: 1.25, py: 0.75 }}>
+                      <ListItemDecorator sx={{ color: 'neutral.plainColor' }}>
                         <ContentCopyRoundedIcon fontSize="small" />
                       </ListItemDecorator>
                       Sao chép
                     </MenuItem>
-                    <MenuItem color="danger">
-                      <ListItemDecorator>
+                    <MenuItem color="danger" sx={{ gap: 1.25, py: 0.75 }}>
+                      <ListItemDecorator sx={{ color: 'danger.plainColor' }}>
                         <DeleteRoundedIcon fontSize="small" />
                       </ListItemDecorator>
                       Xóa
