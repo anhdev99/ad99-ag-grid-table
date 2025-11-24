@@ -255,9 +255,9 @@ function Ad99DataTable<T = any>({
 
     const actionColumn: any = {
       headerName: '',
-      width: 220,
-      minWidth: 220,
-      maxWidth: 260,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
       resizable: false,
       cellClass: 'dt-first-col',
       suppressHeaderMenuButton: true,
@@ -267,10 +267,7 @@ function Ad99DataTable<T = any>({
         // Action toolbar row - show Add/Export/Delete together
         if (params.node.rowPinned === 'top' && showActionToolbar) {
           return (
-            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-start', px: 1.25, height: '100%', width: '100%' }}>
-              <IconButton size="sm" variant="plain" color="primary" onClick={() => callbacksRef.current.onAdd?.()}>
-                <AddRoundedIcon fontSize="small" />
-              </IconButton>
+            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-start', px: 0.5, height: '100%', width: '100%' }}>
               <IconButton size="sm" variant="plain" color="neutral" onClick={handleExportClick}>
                 <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -374,13 +371,25 @@ function Ad99DataTable<T = any>({
           rowSelection={rowSelectionOptions}
           selectionColumnDef={{
             headerName: '',
-            width: 50,
-            minWidth: 50,
-            maxWidth: 50,
+            width: 40,
+            minWidth: 40,
+            maxWidth: 40,
             resizable: false,
             headerClass: 'dt-center-checkbox-header',
             cellClass: 'dt-center-checkbox',
             headerComponent: HeaderSelectAllComponent,
+            cellRenderer: (params: any) => {
+              if (params.node.rowPinned === 'top' && showActionToolbar) {
+                return (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <IconButton size="sm" variant="plain" color="primary" onClick={() => callbacksRef.current.onAdd?.()}>
+                      <AddRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                );
+              }
+              return undefined;
+            },
           }}
           pagination={rowModelType === 'clientSide' ? pagination : false}
           paginationPageSize={paginationPageSize}
