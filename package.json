@@ -1,6 +1,6 @@
 {
   "name": "ad99-ag-grid-table",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Reusable AG-Grid table component for React + AG Grid (Joy UI toolbar/actions)",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
