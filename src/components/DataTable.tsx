@@ -410,7 +410,7 @@ const Ad99DataTable = memo(function Ad99DataTable<T = any>({
             maxWidth: 40,
             resizable: false,
             headerClass: 'dt-center-checkbox-header',
-            cellClass: 'dt-center-checkbox',
+            cellClass: 'dt-center-checkbox ag-selection-checkbox-col',
             headerComponent: HeaderSelectAllComponent,
             cellRenderer: (params: any) => {
               if (params.node.rowPinned === 'top' && showActionToolbar) {
