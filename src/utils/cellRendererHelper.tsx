@@ -12,7 +12,7 @@ import React from 'react';
  * // Use in columnDefs
  * { field: 'status', cellRenderer: StatusRenderer }
  */
-export function createCellRenderer<T = any>(
+export function createCellRenderer(
   Component: React.ComponentType<any>
 ): React.ComponentType<any> {
   return React.memo(Component);
