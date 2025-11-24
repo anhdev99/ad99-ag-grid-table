@@ -413,7 +413,17 @@ const Ad99DataTable = memo(function Ad99DataTable<T = any>({
     }));
 
     return [actionColumn, ...userColumns];
-  }, [columnDefs, handleDeleteClick, handleExportClick, showActionToolbar, getRowActions]);
+  }, [
+    columnDefs, 
+    handleDeleteClick, 
+    handleExportClick, 
+    showActionToolbar, 
+    getRowActions, 
+    getSelectedRows,
+    effectiveToolbarConfig.showExport,
+    effectiveToolbarConfig.showDelete,
+    effectiveToolbarConfig.customActions
+  ]);
 
   return (
     <Sheet 

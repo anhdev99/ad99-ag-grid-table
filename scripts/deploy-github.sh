@@ -45,6 +45,14 @@ echo -e "${GREEN}✓ Git working directory sạch${NC}"
 echo -e "\n${YELLOW}📥 Pull latest changes...${NC}"
 git pull origin $CURRENT_BRANCH
 
+# Run validation
+echo -e "\n${YELLOW}🔍 Running validation checks...${NC}"
+if ! npm run validate; then
+    echo -e "${RED}❌ Validation failed${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ All validations passed${NC}"
+
 # Bump version
 echo -e "\n${YELLOW}📦 Bump version ($VERSION_TYPE)...${NC}"
 npm version $VERSION_TYPE --no-git-tag-version

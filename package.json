@@ -25,6 +25,7 @@
     "build:types": "tsc -p tsconfig.build.json",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "validate": "./scripts/validate.sh",
     "prepublishOnly": "npm run build",
     "deploy": "./scripts/deploy.sh",
     "deploy:patch": "./scripts/deploy.sh patch",
