@@ -143,7 +143,7 @@ const RemoteEntriesExample: React.FC = () => {
     },
   ];
 
-  const [mode, setMode] = useState<'pagination' | 'infinite'>('infinite');
+  const [mode] = useState<'pagination' | 'infinite'>('infinite');
 
   // Handle fetch data for infinite scroll
   const handleFetchData = async (startRow: number, endRow: number) => {
