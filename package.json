@@ -24,7 +24,18 @@
     "build": "vite build && npm run build:types",
     "build:types": "tsc -p tsconfig.build.json",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "prepublishOnly": "npm run build",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:patch": "./scripts/deploy.sh patch",
+    "deploy:minor": "./scripts/deploy.sh minor",
+    "deploy:major": "./scripts/deploy.sh major",
+    "deploy:local": "./scripts/deploy-local.sh",
+    "deploy:github": "./scripts/deploy-github.sh",
+    "deploy:github:patch": "./scripts/deploy-github.sh patch",
+    "deploy:github:minor": "./scripts/deploy-github.sh minor",
+    "deploy:github:major": "./scripts/deploy-github.sh major",
+    "precheck": "./scripts/pre-publish.sh"
   },
   "peerDependencies": {
     "@emotion/react": "^11.14.0",
