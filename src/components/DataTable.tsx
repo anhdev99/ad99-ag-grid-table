@@ -13,7 +13,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-balham.css';
 import './DataTable.css';
 
-function DataTable<T = any>({
+function Ad99DataTable<T = any>({
   columnDefs,
   rowData,
   pagination = true,
@@ -44,13 +44,21 @@ function DataTable<T = any>({
     onDelete?: DataTableProps<T>['onDelete'];
   }>({ onAdd, onExport, onDelete });
 
+  const rowSelectionOptions = useMemo(() => ({
+    mode: 'multiRow' as const,
+    checkboxes: (params: any) => !!params.data && params.node?.rowPinned !== 'top',
+    headerCheckbox: true,
+    selectAll: 'currentPage' as const,
+    enableClickSelection: false,
+  }), []);
+
   // Keep refs in sync
   useEffect(() => {
     callbacksRef.current = { onAdd, onExport, onDelete };
   }, [onAdd, onExport, onDelete]);
 
-  // Custom header component using AG Grid events (no polling)
-  const HeaderSelectAllComponent = useCallback((props: any) => {
+  // Custom header checkbox to support infinite row model
+  const HeaderSelectAllComponent = (props: any) => {
     const { api } = props;
     const [selectionInfo, setSelectionInfo] = useState(() => ({ total: 0, selected: 0 }));
 
@@ -58,22 +66,14 @@ function DataTable<T = any>({
       let total = 0;
       let selected = 0;
 
-      if (rowModelType === 'clientSide') {
-        api.forEachNodeAfterFilterAndSort((node: any) => {
-          if (node.rowPinned === 'top' || !node.data) return;
-          total += 1;
-          if (node.isSelected()) selected += 1;
-        });
-      } else {
-        api.forEachNode((node: any) => {
-          if (node.rowPinned === 'top' || !node.data) return;
-          total += 1;
-          if (node.isSelected()) selected += 1;
-        });
-      }
+      api.forEachNode((node: any) => {
+        if (node.rowPinned === 'top' || !node.data) return;
+        total += 1;
+        if (node.isSelected()) selected += 1;
+      });
 
       setSelectionInfo((prev) => (prev.total === total && prev.selected === selected) ? prev : { total, selected });
-    }, [api, rowModelType]);
+    }, [api]);
 
     useEffect(() => {
       const events = ['selectionChanged', 'rowDataUpdated', 'modelUpdated', 'filterChanged'];
@@ -89,17 +89,11 @@ function DataTable<T = any>({
     const indeterminate = !isAllSelected && selected > 0 && selected < total;
 
     const toggleSelectAll = () => {
-      if (rowModelType === 'clientSide') {
-        api.forEachNodeAfterFilterAndSort((node: any) => {
-          if (node.rowPinned === 'top' || !node.data) return;
-          node.setSelected(!isAllSelected);
-        });
-      } else {
-        api.forEachNode((node: any) => {
-          if (node.rowPinned === 'top' || !node.data) return;
-          node.setSelected(!isAllSelected);
-        });
-      }
+      const shouldSelect = !isAllSelected;
+      api.forEachNode((node: any) => {
+        if (node.rowPinned === 'top' || !node.data) return;
+        node.setSelected(shouldSelect);
+      });
     };
 
     return (
@@ -124,13 +118,12 @@ function DataTable<T = any>({
         </div>
       </Box>
     );
-  }, [rowModelType]);
+  };
 
   // Default grid options
   const defaultColDef = useMemo(() => ({
     sortable: false,
     filter: false,
-    suppressMenu: true,
     suppressHeaderMenuButton: true,
     resizable: true,
   }), []);
@@ -163,10 +156,6 @@ function DataTable<T = any>({
   const getSelectedRows = useCallback((): T[] => {
     if (!gridApiRef.current?.getSelectedRows) return [];
     return gridApiRef.current.getSelectedRows() as T[];
-  }, []);
-
-  const getContextMenuItems = useCallback(() => {
-    return ['copy', 'copyWithHeaders'];
   }, []);
 
   const handleExportClick = useCallback(() => {
@@ -258,172 +247,114 @@ function DataTable<T = any>({
     };
   }, [contextMenu, closeContextMenu]);
 
-  // Inject custom loading cell renderer + action toolbar for first two technical columns
+  // Inject custom action column and loading behavior
   const processedColumnDefs = useMemo(() => {
     console.log('🔄 processedColumnDefs recalculated');
 
-    const addFirstColClass = (cellClass: any) => {
-      return (params: any) => {
-        const resolved = typeof cellClass === 'function' ? cellClass(params) : cellClass;
-        if (Array.isArray(resolved)) return [...resolved, 'dt-first-col'];
-        if (resolved) return [resolved, 'dt-first-col'];
-        return 'dt-first-col';
-      };
+    const totalColumns = columnDefs.length + 2; // +1 action column, +1 selection column added by grid
+
+    const actionColumn: any = {
+      headerName: '',
+      width: 220,
+      minWidth: 220,
+      maxWidth: 260,
+      resizable: false,
+      cellClass: 'dt-first-col',
+      suppressHeaderMenuButton: true,
+      sortable: false,
+      filter: false,
+      cellRenderer: (params: any) => {
+        // Action toolbar row - show Add/Export/Delete together
+        if (params.node.rowPinned === 'top' && showActionToolbar) {
+          return (
+            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-start', px: 1.25, height: '100%', width: '100%' }}>
+              <IconButton size="sm" variant="plain" color="primary" onClick={() => callbacksRef.current.onAdd?.()}>
+                <AddRoundedIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="sm" variant="plain" color="neutral" onClick={handleExportClick}>
+                <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+              <IconButton
+                size="sm"
+                variant="plain"
+                color="danger"
+                onClick={handleDeleteClick}
+                disabled={selectedCount === 0}
+              >
+                <DeleteRoundedIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Box>
+          );
+        }
+        if (!params.data) {
+          return (
+            <div className="dt-loading-full-cell dt-loading-merged-left" role="status" aria-label="Đang tải dữ liệu">
+              <ClipLoader size={16} color="#1890ff" speedMultiplier={0.9} />
+              <span style={{ marginLeft: 6 }}>Đang tải...</span>
+            </div>
+          );
+        }
+        // Regular row - show action menu
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Dropdown>
+              <MenuButton
+                slots={{ root: IconButton }}
+                slotProps={{ root: { size: 'sm', variant: 'plain', color: 'neutral' } }}
+              >
+                <MoreHorizIcon sx={{ fontSize: 18 }} />
+              </MenuButton>
+              <Menu
+                size="sm"
+                placement="bottom-start"
+                className="dt-row-menu"
+                sx={{ minWidth: 170, py: 0.5 }}
+              >
+                {(getRowActions?.(params.data) ?? ([
+                  { key: 'edit', label: 'Chỉnh sửa', icon: <EditRoundedIcon fontSize="small" /> },
+                  { key: 'copy', label: 'Sao chép', icon: <ContentCopyRoundedIcon fontSize="small" /> },
+                  { key: 'delete', label: 'Xóa', icon: <DeleteRoundedIcon fontSize="small" />, color: 'danger' },
+                ] as DataTableRowAction<T>[])).map((action) => (
+                  <MenuItem
+                    key={action.key}
+                    color={action.color === 'danger' ? 'danger' : 'neutral'}
+                    sx={{ gap: 1.25, py: 0.75 }}
+                    onClick={() => action.onClick?.(params.data)}
+                  >
+                    {action.icon && (
+                      <ListItemDecorator sx={{ color: action.color === 'danger' ? 'danger.plainColor' : 'neutral.plainColor' }}>
+                        {action.icon}
+                      </ListItemDecorator>
+                    )}
+                    {action.label}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Dropdown>
+          </Box>
+        );
+      },
+      colSpan: (params: any) => {
+        if (params.node.rowPinned === 'top') return totalColumns - 1; // span over selection + data columns to the right
+        if (!params.data) return totalColumns; // loading row span all
+        return 1;
+      },
     };
 
-    return columnDefs.map((col: any, idx: number) => {
-      // Apply fixed narrow width to first two columns in all modes
-      const baseCol: any = {
-        ...col,
-        sortable: false,
-        filter: false,
-        suppressMenu: true,
-        suppressHeaderMenuButton: true,
-      };
-      if (idx === 0 || idx === 1) {
-        baseCol.width = 40;
-        baseCol.minWidth = 40;
-        baseCol.maxWidth = 40;
-        baseCol.resizable = false;
-      }
-      if (idx === 0) {
-        baseCol.cellClass = addFirstColClass(col.cellClass);
-      }
-      if (rowModelType === 'infinite' && idx === 1 && baseCol.headerCheckboxSelection) {
-        delete baseCol.headerCheckboxSelection;
-      }
-      // If not infinite model, only return width-adjusted columns (no special loading/pinned logic)
-      if (rowModelType !== 'infinite') {
-        return baseCol;
-      }
-      // First column: Action menu OR add button for action toolbar row
-      if (idx === 0) {
-        return {
-          ...baseCol,
-          cellRenderer: (params: any) => {
-            // Action toolbar row - show Add button
-            if (params.node.rowPinned === 'top' && showActionToolbar) {
-              return (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  <IconButton size="sm" variant="plain" color="primary" onClick={() => callbacksRef.current.onAdd?.()}>
-                    <AddRoundedIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              );
-            }
-            if (!params.data) {
-              return (
-                <div className="dt-loading-full-cell dt-loading-merged-left" role="status" aria-label="Đang tải dữ liệu">
-                  <ClipLoader size={16} color="#1890ff" speedMultiplier={0.9} />
-                  <span style={{ marginLeft: 6 }}>Đang tải...</span>
-                </div>
-              );
-            }
-            // Regular row - show action menu
-            return (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                <Dropdown>
-                  <MenuButton
-                    slots={{ root: IconButton }}
-                    slotProps={{ root: { size: 'sm', variant: 'plain', color: 'neutral' } }}
-                  >
-                    <MoreHorizIcon sx={{ fontSize: 18 }} />
-                  </MenuButton>
-                  <Menu
-                    size="sm"
-                    placement="bottom-start"
-                    className="dt-row-menu"
-                    sx={{ minWidth: 170, py: 0.5 }}
-                  >
-                    {(getRowActions?.(params.data) ?? ([
-                      { key: 'edit', label: 'Chỉnh sửa', icon: <EditRoundedIcon fontSize="small" /> },
-                      { key: 'copy', label: 'Sao chép', icon: <ContentCopyRoundedIcon fontSize="small" /> },
-                      { key: 'delete', label: 'Xóa', icon: <DeleteRoundedIcon fontSize="small" />, color: 'danger' },
-                    ] as DataTableRowAction<T>[])).map((action) => (
-                      <MenuItem
-                        key={action.key}
-                        color={action.color === 'danger' ? 'danger' : 'neutral'}
-                        sx={{ gap: 1.25, py: 0.75 }}
-                        onClick={() => action.onClick?.(params.data)}
-                      >
-                        {action.icon && (
-                          <ListItemDecorator sx={{ color: action.color === 'danger' ? 'danger.plainColor' : 'neutral.plainColor' }}>
-                            {action.icon}
-                          </ListItemDecorator>
-                        )}
-                        {action.label}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </Dropdown>
-              </Box>
-            );
-          },
-          colSpan: (params: any) => {
-            if (!params.data) return columnDefs.length; // merge all columns on loading rows
-            return 1;
-          },
-        };
-      }
-      // Second column (checkbox)
-      if (idx === 1) {
-        return {
-          ...baseCol,
-          headerComponent: HeaderSelectAllComponent,
-          headerClass: 'dt-center-checkbox-header',
-          checkboxSelection: (params: any) => {
-            if (params.node.rowPinned === 'top') return false;
-            if (!params.data) return false;
-            return true;
-          },
-          cellRenderer: (params: any) => {
-            if (params.node.rowPinned === 'top' && showActionToolbar) {
-              return (
-                <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-start', px: 1.25, height: '100%', width: '100%' }}>
-                  <IconButton size="sm" variant="plain" color="neutral" onClick={handleExportClick}>
-                    <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
-                  </IconButton>
-                  <IconButton
-                    size="sm"
-                    variant="plain"
-                    color="danger"
-                    onClick={handleDeleteClick}
-                    disabled={selectedCount === 0}
-                  >
-                    <DeleteRoundedIcon sx={{ fontSize: 18 }} />
-                  </IconButton>
-                </Box>
-              );
-            }
-            if (!params.data) {
-              return null; // loading placeholder handled by first column merged cell
-            }
-            return null; // allow built-in checkbox
-          },
-          colSpan: (params: any) => {
-            if (params.node.rowPinned === 'top' && showActionToolbar) return columnDefs.length - 1;
-            if (!params.data) return 1; // first column already spans everything
-            return 1;
-          },
-          cellClass: (params: any) => {
-            if (params.node.rowPinned === 'top') return 'dt-action-toolbar-cell';
-            if (!params.data) return 'dt-loading-align-left';
-            return 'dt-center-checkbox';
-          }
-        };
-      }
-      // Other columns (idx > 1): when loading placeholders or pinned, return null
-      return {
-        ...baseCol,
-        cellRenderer: (params: any) => {
-          if (params.node.rowPinned === 'top') return null; // Hide in action toolbar row
-          if (!params.data) return null; // Hide during loading
-          // Default rendering when data loaded
-          return params.value;
-        },
-      };
-    });
-  }, [columnDefs, rowModelType, showActionToolbar, handleDeleteClick, handleExportClick, selectedCount]);
+    const userColumns = columnDefs.map((col: any) => ({
+      ...col,
+      sortable: false,
+      filter: false,
+      suppressHeaderMenuButton: true,
+      cellRenderer: (params: any) => {
+        if (params.node.rowPinned === 'top') return null; // Hide in action toolbar row
+        if (!params.data) return null; // Hide during loading
+        return params.value;
+      },
+    }));
+
+    return [actionColumn, ...userColumns];
+  }, [columnDefs, handleDeleteClick, handleExportClick, rowModelType, selectedCount, showActionToolbar, getRowActions]);
 
   return (
     <Sheet 
@@ -440,25 +371,33 @@ function DataTable<T = any>({
           rowData={rowModelType === 'clientSide' ? rowData : undefined}
           pinnedTopRowData={showActionToolbar ? [{ __actionToolbar: true }] : undefined}
           defaultColDef={defaultColDef}
+          rowSelection={rowSelectionOptions}
+          selectionColumnDef={{
+            headerName: '',
+            width: 50,
+            minWidth: 50,
+            maxWidth: 50,
+            resizable: false,
+            headerClass: 'dt-center-checkbox-header',
+            cellClass: 'dt-center-checkbox',
+            headerComponent: HeaderSelectAllComponent,
+          }}
           pagination={rowModelType === 'clientSide' ? pagination : false}
           paginationPageSize={paginationPageSize}
           domLayout={domLayout}
-          rowSelection="multiple"
           animateRows={true}
-          suppressRowClickSelection={true}
           rowModelType={rowModelType}
           onGridReady={({ api }) => { gridApiRef.current = api; }}
-          getContextMenuItems={getContextMenuItems}
           onCellContextMenu={handleCellContextMenu}
           onSelectionChanged={handleSelectionChanged}
+          theme="legacy"
           // No external selection tracking needed; header listens to events
           datasource={datasource}
           cacheBlockSize={100}
           cacheOverflowSize={2}
           maxConcurrentDatasourceRequests={1}
-          infiniteInitialRowCount={0}
+          infiniteInitialRowCount={1}
           maxBlocksInCache={10}
-          suppressLoadingOverlay={true}
         />
         {contextMenu && (
           <div
@@ -485,4 +424,4 @@ function DataTable<T = any>({
   );
 }
 
-export default DataTable;
+export default Ad99DataTable;

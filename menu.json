@@ -1,0 +1,364 @@
+{
+    "sections": [
+        {
+            "id": "kpi-dashboard",
+            "title": "Dashboard",
+            "items": [
+                {
+                    "icon": "gauge",
+                    "label": "Tổng quan KPI",
+                    "href": "#/dashboard",
+                    "topbarTitle": "Tổng quan KPI",
+                    "topbarLabel": "Dashboard",
+                    "requiredRoles": []
+                }
+            ]
+        },
+        {
+            "id": "kpi-personal",
+            "title": "KPIs cá nhân",
+            "items": [
+                {
+                    "icon": "file-check-2",
+                    "label": "Đăng ký KPIs hằng năm",
+                    "href": "#/personal/register",
+                    "topbarTitle": "Đăng ký KPIs hằng năm",
+                    "topbarLabel": "KPIs cá nhân",
+                    "requiredRoles": []
+                },
+                {
+                    "icon": "inbox",
+                    "label": "KPIs được giao",
+                    "href": "#/personal/assigned",
+                    "topbarTitle": "KPIs được giao",
+                    "topbarLabel": "KPIs cá nhân",
+                    "requiredRoles": []
+                },
+                {
+                    "icon": "upload",
+                    "label": "Nhập minh chứng",
+                    "href": "#/personal/evidence",
+                    "topbarTitle": "Nhập minh chứng",
+                    "topbarLabel": "KPIs cá nhân",
+                    "requiredRoles": []
+                },
+                {
+                    "icon": "calendar-check-2",
+                    "label": "Tự đánh giá hằng tháng",
+                    "href": "#/personal/self-evaluation",
+                    "topbarTitle": "Tự đánh giá hằng tháng",
+                    "topbarLabel": "KPIs cá nhân",
+                    "requiredRoles": []
+                },
+                {
+                    "icon": "history",
+                    "label": "Lịch sử kết quả",
+                    "href": "#/personal/history",
+                    "topbarTitle": "Lịch sử kết quả",
+                    "topbarLabel": "KPIs cá nhân",
+                    "requiredRoles": []
+                }
+            ]
+        },
+        {
+            "id": "kpi-approval",
+            "title": "Đánh giá & Phê duyệt",
+            "items": [
+                {
+                    "icon": "clipboard-check",
+                    "label": "Duyệt đăng ký KPIs",
+                    "href": "#/approval/registrations",
+                    "topbarTitle": "Duyệt đăng ký KPIs",
+                    "topbarLabel": "Đánh giá & Phê duyệt",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "git-branch",
+                    "label": "Giao/điều chỉnh nhiệm vụ",
+                    "href": "#/approval/assignments",
+                    "topbarTitle": "Giao/điều chỉnh nhiệm vụ",
+                    "topbarLabel": "Đánh giá & Phê duyệt",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "check-check",
+                    "label": "Chấm điểm tháng",
+                    "href": "#/approval/monthly-scoring",
+                    "topbarTitle": "Chấm điểm tháng",
+                    "topbarLabel": "Đánh giá & Phê duyệt",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "stamp",
+                    "label": "Phê duyệt kết quả",
+                    "href": "#/approval/finalize",
+                    "topbarTitle": "Phê duyệt kết quả",
+                    "topbarLabel": "Đánh giá & Phê duyệt",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "kpi-ad-hoc",
+            "title": "Nhiệm vụ đột xuất",
+            "items": [
+                {
+                    "icon": "send",
+                    "label": "Giao nhiệm vụ",
+                    "href": "#/ad-hoc/assign",
+                    "topbarTitle": "Giao nhiệm vụ đột xuất",
+                    "topbarLabel": "Nhiệm vụ đột xuất",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "activity",
+                    "label": "Theo dõi tiến độ",
+                    "href": "#/ad-hoc/progress",
+                    "topbarTitle": "Theo dõi tiến độ",
+                    "topbarLabel": "Nhiệm vụ đột xuất",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "list-checks",
+                    "label": "Chấm điểm đột xuất",
+                    "href": "#/ad-hoc/scoring",
+                    "topbarTitle": "Chấm điểm đột xuất",
+                    "topbarLabel": "Nhiệm vụ đột xuất",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "kpi-dossier",
+            "title": "Tờ trình & Xếp loại",
+            "items": [
+                {
+                    "icon": "newspaper",
+                    "label": "Tờ trình tự động",
+                    "href": "#/dossier/auto-proposal",
+                    "topbarTitle": "Tờ trình tự động",
+                    "topbarLabel": "Tờ trình & Xếp loại",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "medal",
+                    "label": "Xếp loại KPIs",
+                    "href": "#/dossier/ranking",
+                    "topbarTitle": "Xếp loại KPIs",
+                    "topbarLabel": "Tờ trình & Xếp loại",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "file-down",
+                    "label": "Xuất PDF/Excel",
+                    "href": "#/dossier/export",
+                    "topbarTitle": "Xuất PDF/Excel",
+                    "topbarLabel": "Tờ trình & Xếp loại",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "kpi-templates",
+            "title": "Template KPIs",
+            "items": [
+                {
+                    "icon": "layers",
+                    "label": "Quản lý khung KPIs",
+                    "href": "#/templates/frames",
+                    "topbarTitle": "Quản lý khung KPIs",
+                    "topbarLabel": "Template KPIs",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "git-commit",
+                    "label": "Phiên bản & công thức",
+                    "href": "#/templates/versioning",
+                    "topbarTitle": "Phiên bản & công thức",
+                    "topbarLabel": "Template KPIs",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "kpi-points",
+            "title": "Điểm thưởng – Điểm trừ",
+            "items": [
+                {
+                    "icon": "award",
+                    "label": "Khen thưởng",
+                    "href": "#/points/rewards",
+                    "topbarTitle": "Khen thưởng",
+                    "topbarLabel": "Điểm thưởng – Điểm trừ",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "ban",
+                    "label": "Kỷ luật",
+                    "href": "#/points/penalties",
+                    "topbarTitle": "Kỷ luật",
+                    "topbarLabel": "Điểm thưởng – Điểm trừ",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "history",
+                    "label": "Lịch sử áp dụng",
+                    "href": "#/points/history",
+                    "topbarTitle": "Lịch sử áp dụng",
+                    "topbarLabel": "Điểm thưởng – Điểm trừ",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "kpi-periods",
+            "title": "Kỳ đánh giá",
+            "items": [
+                {
+                    "icon": "lock-open",
+                    "label": "Mở/khoá kỳ",
+                    "href": "#/periods/open-close",
+                    "topbarTitle": "Mở/khoá kỳ",
+                    "topbarLabel": "Kỳ đánh giá",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "clock-8",
+                    "label": "Cấu hình thời gian",
+                    "href": "#/periods/scheduling",
+                    "topbarTitle": "Cấu hình thời gian",
+                    "topbarLabel": "Kỳ đánh giá",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                },
+                {
+                    "icon": "bell-ring",
+                    "label": "Nhắc nhở tự động",
+                    "href": "#/periods/reminders",
+                    "topbarTitle": "Nhắc nhở tự động",
+                    "topbarLabel": "Kỳ đánh giá",
+                    "requiredRoles": [
+                        "Admin",
+                        "KpiManager"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "kpi-reports",
+            "title": "Báo cáo",
+            "items": [
+                {
+                    "icon": "user-round",
+                    "label": "Báo cáo cá nhân",
+                    "href": "#/reports/personal",
+                    "topbarTitle": "Báo cáo cá nhân",
+                    "topbarLabel": "Báo cáo",
+                    "requiredRoles": []
+                },
+                {
+                    "icon": "building-2",
+                    "label": "Báo cáo đơn vị",
+                    "href": "#/reports/department",
+                    "topbarTitle": "Báo cáo đơn vị",
+                    "topbarLabel": "Báo cáo",
+                    "requiredRoles": []
+                },
+                {
+                    "icon": "school",
+                    "label": "Báo cáo toàn trường",
+                    "href": "#/reports/university",
+                    "topbarTitle": "Báo cáo toàn trường",
+                    "topbarLabel": "Báo cáo",
+                    "requiredRoles": []
+                }
+            ]
+        },
+        {
+            "id": "kpi-admin",
+            "title": "Quản trị hệ thống",
+            "items": [
+                {
+                    "icon": "users",
+                    "label": "Người dùng & phân quyền",
+                    "href": "#/admin/users",
+                    "topbarTitle": "Người dùng & phân quyền",
+                    "topbarLabel": "Quản trị hệ thống",
+                    "requiredRoles": [
+                        "Admin"
+                    ]
+                },
+                {
+                    "icon": "sliders-horizontal",
+                    "label": "Cấu hình chung",
+                    "href": "#/admin/settings",
+                    "topbarTitle": "Cấu hình chung",
+                    "topbarLabel": "Quản trị hệ thống",
+                    "requiredRoles": [
+                        "Admin"
+                    ]
+                },
+                {
+                    "icon": "book-copy",
+                    "label": "Nhật ký hệ thống",
+                    "href": "#/admin/audit-logs",
+                    "topbarTitle": "Nhật ký hệ thống",
+                    "topbarLabel": "Quản trị hệ thống",
+                    "requiredRoles": [
+                        "Admin"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,144 +1,116 @@
-# Reusable AG-Grid Table Component
+# ad99-ag-grid
 
-Component table có thể tái sử dụng được xây dựng với React, RSuite và AG-Grid.
+Bảng dữ liệu tái sử dụng xây dựng trên React + AG Grid, thêm action toolbar và menu tùy chỉnh. Đã đóng gói dạng library để dự án khác có thể `npm install` hoặc `npm pack` để dùng nội bộ.
 
-## 🎯 Tính năng
+## 🎯 Tính năng chính
 
-- ✅ Component DataTable có thể tái sử dụng
-- ✅ Action toolbar (Thêm/Xuất/Xóa) ngay trong bảng
-- ✅ Hỗ trợ TypeScript đầy đủ
-- ✅ Responsive design
-- ✅ Pagination tích hợp
-- ✅ Column sorting & filtering
-- ✅ Row selection (single/multiple)
-- ✅ Custom cell renderers
-- ✅ Icon support
+- Action toolbar (Thêm / Xuất / Xóa) trên hàng pinned đầu
+- Row action menu có thể truyền từ ngoài (getRowActions)
+- Context menu chuột phải: Sao chép / Sao chép kèm tiêu đề (hoặc tự cấu hình)
+- Hỗ trợ clientSide và infinite scroll, hiển thị loading row khi fetch
+- Pagination, multi-select, custom cell renderer, TypeScript ready
 
-## 📦 Cài đặt
+## 🚀 Cài đặt & chạy (dev)
 
 ```bash
 npm install
-```
-
-## 🚀 Chạy ứng dụng
-
-```bash
 npm run dev
 ```
 
-## 📖 Cách sử dụng
+## 📦 Dùng trong dự án khác
 
-### 1. Import component
+```bash
+npm install ad99-ag-grid-table \
+  ag-grid-community ag-grid-react \
+  @mui/joy @mui/icons-material \
+  react-spinners @emotion/react @emotion/styled
+```
+
+```ts
+import 'ad99-ag-grid-table/style.css';
+```
+
+Build & đóng gói phát hành nội bộ:
+1. `npm run build` → tạo `dist/index.mjs`, `dist/index.cjs`, `dist/style.css`, `dist/types`.
+2. `npm pack` → sinh file `.tgz` để dự án khác `npm install ../ad99-ag-grid-table-1.0.0.tgz`.
+   (Hoặc `npm publish` nếu muốn đưa lên npm registry của bạn.)
+
+## 📖 Sử dụng nhanh
 
 ```tsx
-import { DataTable } from './components';
+import { Ad99DataTable } from 'ad99-ag-grid-table';
+import 'ad99-ag-grid-table/style.css';
 import { ColDef } from 'ag-grid-community';
-import 'rsuite/dist/rsuite.min.css';
-```
 
-### 2. Define column definitions
-
-```tsx
 const columnDefs: ColDef[] = [
-  {
-    headerName: 'Tên',
-    field: 'name',
-    flex: 1,
-  },
-  {
-    headerName: 'Mã',
-    field: 'code',
-    flex: 1,
-  },
-  // ... thêm columns
+  { headerName: '', width: 60 },
+  { headerName: '', width: 50, checkboxSelection: true, headerCheckboxSelection: true },
+  { headerName: 'Tên', field: 'name', flex: 1 },
+  { headerName: 'Mã', field: 'code', flex: 1 },
 ];
-```
 
-### 3. Sử dụng DataTable component
+const rowActions = (row: any) => [
+  { key: 'edit', label: 'Chỉnh sửa', onClick: () => console.log('Edit', row) },
+  { key: 'copy', label: 'Sao chép', onClick: () => console.log('Copy', row) },
+  { key: 'delete', label: 'Xóa', color: 'danger', onClick: () => console.log('Delete', row) },
+];
 
-```tsx
-<DataTable
+<Ad99DataTable
   columnDefs={columnDefs}
   rowData={data}
   onAdd={() => console.log('Add')}
   onExport={(selected) => console.log('Export', selected)}
   onDelete={(selected) => console.log('Delete', selected)}
-  pagination={true}
+  getRowActions={rowActions}
+  contextMenuItems={[
+    { key: 'copy', label: 'Sao chép', shortcut: 'Ctrl+C', action: () => console.log('Copy') },
+    { key: 'copyHeaders', label: 'Sao chép kèm tiêu đề', action: () => console.log('Copy headers') },
+  ]}
+  pagination
   paginationPageSize={20}
-/>
+  rowModelType="clientSide"
+/>;
 ```
 
-## 🎨 Tùy chỉnh
-
-### DataTable Props
+## ⚙️ DataTable Props
 
 | Prop | Type | Default | Mô tả |
-|------|------|---------|-------|
-| `columnDefs` | `ColDef[]` | required | Định nghĩa các cột |
+| --- | --- | --- | --- |
+| `columnDefs` | `ColDef[]` | required | Định nghĩa cột |
 | `rowData` | `T[]` | required | Dữ liệu hiển thị |
-| `pagination` | `boolean` | `true` | Enable pagination |
-| `paginationPageSize` | `number` | `20` | Số rows mỗi page |
-| `domLayout` | `'normal' \| 'autoHeight' \| 'print'` | `'autoHeight'` | Chế độ layout của AG Grid |
-| `className` | `string` | `''` | Custom CSS class |
+| `pagination` | `boolean` | `true` | Bật/tắt pagination (clientSide) |
+| `paginationPageSize` | `number` | `20` | Số dòng mỗi trang |
+| `domLayout` | `'normal' \| 'autoHeight' \| 'print'` | `'autoHeight'` | Layout AG Grid |
+| `className` | `string` | `''` | CSS class tùy chỉnh |
 | `rowModelType` | `'clientSide' \| 'infinite'` | `'clientSide'` | Chế độ load dữ liệu |
-| `onFetchData` | `(startRow: number, endRow: number) => Promise<{ data: T[]; totalCount: number }>` | - | Callback fetch data khi chạy infinite scroll |
-| `onAdd` | `() => void` | - | Callback cho nút thêm ở action toolbar (pinned row) |
-| `onExport` | `(selectedRows: T[]) => void` | - | Callback cho nút export, nhận danh sách rows đang được chọn |
-| `onDelete` | `(selectedRows: T[]) => void` | - | Callback cho nút xóa, nhận danh sách rows đang được chọn |
-| `showActionToolbar` | `boolean` | `true` | Hiển thị hàng pinned với các nút hành động |
+| `onFetchData` | `(startRow, endRow) => Promise<{ data: T[]; totalCount: number }>` | - | Fetch dữ liệu khi dùng infinite scroll |
+| `onAdd` | `() => void` | - | Click nút Thêm (pinned row) |
+| `onExport` | `(selectedRows: T[]) => void` | - | Click nút Xuất, nhận danh sách dòng đang chọn |
+| `onDelete` | `(selectedRows: T[]) => void` | - | Click nút Xóa, nhận danh sách dòng đang chọn |
+| `showActionToolbar` | `boolean` | `true` | Hiển thị hàng hành động pinned |
+| `contextMenuItems` | `DataTableContextMenuItem[]` | copy & copyWithHeaders | Menu chuột phải tùy chỉnh |
+| `getRowActions` | `(row: T) => DataTableRowAction<T>[]` | preset Edit/Copy/Delete | Tùy biến menu hành động trên từng dòng |
 
-### Custom Cell Renderers
-
-```tsx
-const CustomCellRenderer = (params: any) => {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      <span>{params.value}</span>
-    </div>
-  );
-};
-
-const columnDefs: ColDef[] = [
-  {
-    headerName: 'Name',
-    field: 'name',
-    cellRenderer: CustomCellRenderer,
-  },
-];
-```
-
-## 📁 Cấu trúc thư mục
+## 📁 Cấu trúc
 
 ```
 src/
 ├── components/
-│   ├── DataTable.tsx          # Main table component
+│   ├── DataTable.tsx
 │   ├── DataTable.css
 │   └── index.ts
 ├── types/
-│   └── table.types.ts         # TypeScript types
+│   └── table.types.ts
 ├── examples/
-│   └── RemoteEntriesExample.tsx  # Example usage
+│   └── RemoteEntriesExample.tsx
 ├── main.tsx
 └── index.css
 ```
 
-## 🔧 Công nghệ sử dụng
+## 🧪 Demo
 
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **AG-Grid** - Advanced data grid
-- **RSuite** - UI component library
-- **Vite** - Build tool
+Xem `src/examples/RemoteEntriesExample.tsx` để thấy cấu hình đầy đủ (infinite scroll, row actions, context menu).
 
-## 📝 Ví dụ
+## 🔧 Tech
 
-Xem file `src/examples/RemoteEntriesExample.tsx` để biết cách sử dụng chi tiết.
-
-## 🤝 Đóng góp
-
-Feel free to submit issues and enhancement requests!
-
-## 📄 License
-
-MIT
+React 18, TypeScript, AG Grid, Vite.

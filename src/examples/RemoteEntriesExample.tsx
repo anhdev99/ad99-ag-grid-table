@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ColDef } from 'ag-grid-community';
-import DataTable from '../components/DataTable';
+import Ad99DataTable from '../components/DataTable';
 import { RemoteEntry } from '../types/table.types';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
@@ -95,25 +95,6 @@ const RemoteEntriesExample: React.FC = () => {
 
   // Column definitions
   const columnDefs: ColDef[] = [
-    {
-      headerName: '',
-      width: 60,
-      sortable: false,
-      filter: false,
-      suppressHeaderMenuButton: true,
-      resizable: false,
-      cellStyle: { textAlign: 'center' },
-    },
-    {
-      headerName: '',
-      width: 50,
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
-      sortable: false,
-      filter: false,
-      suppressHeaderMenuButton: true,
-      resizable: false,
-    },
     {
       headerName: 'Ảnh & Tên',
       field: 'name',
@@ -218,42 +199,8 @@ const RemoteEntriesExample: React.FC = () => {
 
   return (
     <div style={{ padding: '20px', minHeight: '100vh', height: '100vh', background: '#f0f2f5', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <span style={{ fontWeight: 600, fontSize: '14px' }}>Chế độ hiển thị:</span>
-        <button 
-          onClick={() => setMode('pagination')}
-          style={{
-            padding: '8px 16px',
-            background: mode === 'pagination' ? '#1890ff' : '#fff',
-            color: mode === 'pagination' ? '#fff' : '#333',
-            border: '1px solid #d9d9d9',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          Phân trang
-        </button>
-        <button 
-          onClick={() => setMode('infinite')}
-          style={{
-            padding: '8px 16px',
-            background: mode === 'infinite' ? '#1890ff' : '#fff',
-            color: mode === 'infinite' ? '#fff' : '#333',
-            border: '1px solid #d9d9d9',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          Infinite Scroll
-        </button>
-        <span style={{ color: '#666', fontSize: '13px' }}>
-          ({mode === 'pagination' ? 'Phân trang với pagination' : 'Kéo xuống để load thêm'})
-        </span>
-      </div>
       <div style={{ flex: 1, minHeight: 0 }}>
-        <DataTable
+        <Ad99DataTable
           columnDefs={columnDefs}
           rowData={rowData}
           onFetchData={mode === 'infinite' ? handleFetchData : undefined}
