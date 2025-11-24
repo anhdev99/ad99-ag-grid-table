@@ -5,3 +5,4 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 export { default as Ad99DataTable } from './components/DataTable';
 export * from './types/table.types';
+export { createCellRenderer } from './utils/cellRendererHelper';
