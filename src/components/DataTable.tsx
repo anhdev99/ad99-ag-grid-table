@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef, memo } from 'react';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { AgGridReact } from 'ag-grid-react';
 import { Sheet, IconButton, Box, Menu, MenuItem, Dropdown, MenuButton, ListItemDecorator } from '@mui/joy';
@@ -13,7 +13,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-balham.css';
 import './DataTable.css';
 
-function Ad99DataTable<T = any>({
+const Ad99DataTable = memo(function Ad99DataTable<T = any>({
   columnDefs,
   rowData,
   pagination = true,
@@ -30,7 +30,7 @@ function Ad99DataTable<T = any>({
   getRowActions,
 }: DataTableProps<T>) {
   const gridApiRef = useRef<any>(null);
-  const [selectedCount, setSelectedCount] = useState(0);
+  const selectedCountRef = useRef(0);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [lastCellContext, setLastCellContext] = useState<any>(null);
   const contextMenuRef = useRef<HTMLDivElement | null>(null);
@@ -57,29 +57,38 @@ function Ad99DataTable<T = any>({
     callbacksRef.current = { onAdd, onExport, onDelete };
   }, [onAdd, onExport, onDelete]);
 
-  // Custom header checkbox to support infinite row model
-  const HeaderSelectAllComponent = (props: any) => {
+  // Custom header checkbox to support infinite row model - memoized
+  const HeaderSelectAllComponent = memo((props: any) => {
     const { api } = props;
     const [selectionInfo, setSelectionInfo] = useState(() => ({ total: 0, selected: 0 }));
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const recomputeSelection = useCallback(() => {
-      let total = 0;
-      let selected = 0;
+      // Debounce để tránh tính toán quá nhiều lần
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      
+      timerRef.current = setTimeout(() => {
+        let total = 0;
+        let selected = 0;
 
-      api.forEachNode((node: any) => {
-        if (node.rowPinned === 'top' || !node.data) return;
-        total += 1;
-        if (node.isSelected()) selected += 1;
-      });
+        api.forEachNode((node: any) => {
+          if (node.rowPinned === 'top' || !node.data) return;
+          total += 1;
+          if (node.isSelected()) selected += 1;
+        });
 
-      setSelectionInfo((prev) => (prev.total === total && prev.selected === selected) ? prev : { total, selected });
+        setSelectionInfo((prev) => (prev.total === total && prev.selected === selected) ? prev : { total, selected });
+      }, 50);
     }, [api]);
 
     useEffect(() => {
-      const events = ['selectionChanged', 'rowDataUpdated', 'modelUpdated', 'filterChanged'];
+      const events = ['selectionChanged', 'rowDataUpdated', 'modelUpdated'];
       recomputeSelection();
       events.forEach(event => api.addEventListener(event, recomputeSelection));
       return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
         events.forEach(event => api.removeEventListener(event, recomputeSelection));
       };
     }, [api, recomputeSelection]);
@@ -88,13 +97,13 @@ function Ad99DataTable<T = any>({
     const isAllSelected = total > 0 && selected === total;
     const indeterminate = !isAllSelected && selected > 0 && selected < total;
 
-    const toggleSelectAll = () => {
+    const toggleSelectAll = useCallback(() => {
       const shouldSelect = !isAllSelected;
       api.forEachNode((node: any) => {
         if (node.rowPinned === 'top' || !node.data) return;
         node.setSelected(shouldSelect);
       });
-    };
+    }, [api, isAllSelected]);
 
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
@@ -118,7 +127,7 @@ function Ad99DataTable<T = any>({
         </div>
       </Box>
     );
-  };
+  });
 
   // Default grid options
   const defaultColDef = useMemo(() => ({
@@ -149,7 +158,8 @@ function Ad99DataTable<T = any>({
           console.error('Error fetching data:', error);
           params.failCallback();
         }
-      }
+      },
+      rowCount: undefined
     };
   }, [rowModelType, onFetchData, rowData]);
 
@@ -229,8 +239,24 @@ function Ad99DataTable<T = any>({
     [contextMenuItems, defaultContextMenuItems]
   );
 
+  const selectionChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   const handleSelectionChanged = useCallback(() => {
-    setSelectedCount(getSelectedRows().length);
+    // Throttle để tránh refresh quá nhiều
+    if (selectionChangeTimerRef.current) return;
+    
+    selectionChangeTimerRef.current = setTimeout(() => {
+      const nextCount = getSelectedRows().length;
+      if (selectedCountRef.current !== nextCount) {
+        selectedCountRef.current = nextCount;
+        gridApiRef.current?.refreshCells({
+          columns: ['action-menu'],
+          force: false,
+          suppressFlash: true,
+        });
+      }
+      selectionChangeTimerRef.current = null;
+    }, 100);
   }, [getSelectedRows]);
 
   useEffect(() => {
@@ -247,13 +273,21 @@ function Ad99DataTable<T = any>({
     };
   }, [contextMenu, closeContextMenu]);
 
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (selectionChangeTimerRef.current) {
+        clearTimeout(selectionChangeTimerRef.current);
+      }
+    };
+  }, []);
+
   // Inject custom action column and loading behavior
   const processedColumnDefs = useMemo(() => {
-    console.log('🔄 processedColumnDefs recalculated');
-
     const totalColumns = columnDefs.length + 2; // +1 action column, +1 selection column added by grid
 
     const actionColumn: any = {
+      colId: 'action-menu',
       headerName: '',
       width: 40,
       minWidth: 40,
@@ -276,7 +310,7 @@ function Ad99DataTable<T = any>({
                 variant="plain"
                 color="danger"
                 onClick={handleDeleteClick}
-                disabled={selectedCount === 0}
+                disabled={selectedCountRef.current === 0}
               >
                 <DeleteRoundedIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -351,7 +385,7 @@ function Ad99DataTable<T = any>({
     }));
 
     return [actionColumn, ...userColumns];
-  }, [columnDefs, handleDeleteClick, handleExportClick, rowModelType, selectedCount, showActionToolbar, getRowActions]);
+  }, [columnDefs, handleDeleteClick, handleExportClick, showActionToolbar, getRowActions]);
 
   return (
     <Sheet 
@@ -431,6 +465,6 @@ function Ad99DataTable<T = any>({
       </div>
     </Sheet>
   );
-}
+}) as <T = any>(props: DataTableProps<T>) => React.ReactElement;
 
 export default Ad99DataTable;

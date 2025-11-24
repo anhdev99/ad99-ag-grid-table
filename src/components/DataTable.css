@@ -1,11 +1,13 @@
 .data-table-container {
   display: flex;
   flex-direction: column;
+  contain: layout style;
 }
 
 .data-table-grid {
   width: 100%;
   height: 1200px;
+  will-change: transform;
 }
 
 
@@ -18,7 +20,9 @@
   background-color: rgba(255, 255, 255, 0.9);
 }
 
-.data-table-grid { position: relative; }
+.data-table-grid { 
+  position: relative;
+}
 
 .dt-loading-full-cell {
   display: flex;
@@ -125,6 +129,8 @@
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
   padding: 6px 0;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .dt-context-menu-item {
@@ -140,6 +146,7 @@
   font-size: 13px;
   cursor: pointer;
   text-align: left;
+  transition: background-color 0.15s ease;
 }
 
 .dt-context-menu-item:hover {
@@ -173,4 +180,13 @@
 
 .dt-row-menu .MuiListItemDecorator-root {
   min-width: 22px;
+}
+
+/* Performance optimizations */
+.ag-theme-balham .ag-row {
+  will-change: transform;
+}
+
+.ag-theme-balham .ag-cell {
+  contain: layout style;
 }
