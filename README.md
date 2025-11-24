@@ -1,117 +1,173 @@
-# ad99-ag-grid
+# ad99-ag-grid-table
 
-Bảng dữ liệu tái sử dụng xây dựng trên React + AG Grid, thêm action toolbar và menu tùy chỉnh. Đã đóng gói dạng library để dự án khác có thể `npm install` hoặc `npm pack` để dùng nội bộ.
+[![npm version](https://img.shields.io/npm/v/ad99-ag-grid-table.svg)](https://www.npmjs.com/package/ad99-ag-grid-table)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎯 Tính năng chính
+A production-ready React data table component built on AG Grid with enhanced toolbar actions, context menus, and infinite scroll support.
 
-- Action toolbar (Thêm / Xuất / Xóa) trên hàng pinned đầu
-- Row action menu có thể truyền từ ngoài (getRowActions)
-- Context menu chuột phải: Sao chép / Sao chép kèm tiêu đề (hoặc tự cấu hình)
-- Hỗ trợ clientSide và infinite scroll, hiển thị loading row khi fetch
-- Pagination, multi-select, custom cell renderer, TypeScript ready
+## Features
 
-## 🚀 Cài đặt & chạy (dev)
+- **Action Toolbar** - Built-in add/export/delete actions with pinned row
+- **Row Actions Menu** - Customizable per-row action menu
+- **Context Menu** - Right-click menu with copy/paste functionality
+- **Data Loading** - Client-side and infinite scroll with loading states
+- **TypeScript** - Full type safety and IntelliSense support
 
-```bash
-npm install
-npm run dev
-```
-
-## 📦 Dùng trong dự án khác
+## Installation
 
 ```bash
-npm install ad99-ag-grid-table \
-  ag-grid-community ag-grid-react \
-  @mui/joy @mui/icons-material \
-  react-spinners @emotion/react @emotion/styled
+npm install ad99-ag-grid-table ag-grid-community ag-grid-react @mui/joy @mui/icons-material react-spinners @emotion/react @emotion/styled
 ```
 
-```ts
-import 'ad99-ag-grid-table/style.css';
-```
-
-Build & đóng gói phát hành nội bộ:
-1. `npm run build` → tạo `dist/index.mjs`, `dist/index.cjs`, `dist/style.css`, `dist/types`.
-2. `npm pack` → sinh file `.tgz` để dự án khác `npm install ../ad99-ag-grid-table-1.0.0.tgz`.
-   (Hoặc `npm publish` nếu muốn đưa lên npm registry của bạn.)
-
-## 📖 Sử dụng nhanh
+## Quick Start
 
 ```tsx
 import { Ad99DataTable } from 'ad99-ag-grid-table';
 import 'ad99-ag-grid-table/style.css';
-import { ColDef } from 'ag-grid-community';
+import type { ColDef } from 'ag-grid-community';
 
 const columnDefs: ColDef[] = [
   { headerName: '', width: 60 },
   { headerName: '', width: 50, checkboxSelection: true, headerCheckboxSelection: true },
-  { headerName: 'Tên', field: 'name', flex: 1 },
-  { headerName: 'Mã', field: 'code', flex: 1 },
+  { field: 'name', headerName: 'Name', flex: 1 },
+  { field: 'code', headerName: 'Code', flex: 1 },
 ];
 
-const rowActions = (row: any) => [
-  { key: 'edit', label: 'Chỉnh sửa', onClick: () => console.log('Edit', row) },
-  { key: 'copy', label: 'Sao chép', onClick: () => console.log('Copy', row) },
-  { key: 'delete', label: 'Xóa', color: 'danger', onClick: () => console.log('Delete', row) },
-];
+function App() {
+  return (
+    <Ad99DataTable
+      columnDefs={columnDefs}
+      rowData={data}
+      onAdd={() => console.log('Add')}
+      onExport={(selected) => console.log('Export', selected)}
+      onDelete={(selected) => console.log('Delete', selected)}
+      pagination
+      paginationPageSize={20}
+    />
+  );
+}
+```
 
+## API Reference
+
+### Core Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `columnDefs` | `ColDef[]` | Yes | Column definitions |
+| `rowData` | `T[]` | Yes | Data array |
+| `rowModelType` | `'clientSide' \| 'infinite'` | No | Data loading mode (default: `'clientSide'`) |
+| `pagination` | `boolean` | No | Enable pagination (default: `true`) |
+| `paginationPageSize` | `number` | No | Rows per page (default: `20`) |
+
+### Action Handlers
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onAdd` | `() => void` | Add button click handler |
+| `onExport` | `(rows: T[]) => void` | Export selected rows handler |
+| `onDelete` | `(rows: T[]) => void` | Delete selected rows handler |
+| `onFetchData` | `(start: number, end: number) => Promise<{data: T[], totalCount: number}>` | Infinite scroll data fetcher |
+
+### Customization
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `getRowActions` | `(row: T) => DataTableRowAction<T>[]` | Custom row action menu items |
+| `contextMenuItems` | `DataTableContextMenuItem[]` | Custom context menu items |
+| `showActionToolbar` | `boolean` | Show/hide action toolbar (default: `true`) |
+| `className` | `string` | Custom CSS class |
+| `domLayout` | `'normal' \| 'autoHeight' \| 'print'` | AG Grid layout mode |
+
+## Advanced Usage
+
+### Infinite Scroll
+
+```tsx
 <Ad99DataTable
+  rowModelType="infinite"
+  onFetchData={async (startRow, endRow) => {
+    const response = await fetch(`/api/data?start=${startRow}&end=${endRow}`);
+    const { data, total } = await response.json();
+    return { data, totalCount: total };
+  }}
   columnDefs={columnDefs}
-  rowData={data}
-  onAdd={() => console.log('Add')}
-  onExport={(selected) => console.log('Export', selected)}
-  onDelete={(selected) => console.log('Delete', selected)}
-  getRowActions={rowActions}
-  contextMenuItems={[
-    { key: 'copy', label: 'Sao chép', shortcut: 'Ctrl+C', action: () => console.log('Copy') },
-    { key: 'copyHeaders', label: 'Sao chép kèm tiêu đề', action: () => console.log('Copy headers') },
-  ]}
-  pagination
-  paginationPageSize={20}
-  rowModelType="clientSide"
-/>;
+/>
 ```
 
-## ⚙️ DataTable Props
+### Custom Row Actions
 
-| Prop | Type | Default | Mô tả |
-| --- | --- | --- | --- |
-| `columnDefs` | `ColDef[]` | required | Định nghĩa cột |
-| `rowData` | `T[]` | required | Dữ liệu hiển thị |
-| `pagination` | `boolean` | `true` | Bật/tắt pagination (clientSide) |
-| `paginationPageSize` | `number` | `20` | Số dòng mỗi trang |
-| `domLayout` | `'normal' \| 'autoHeight' \| 'print'` | `'autoHeight'` | Layout AG Grid |
-| `className` | `string` | `''` | CSS class tùy chỉnh |
-| `rowModelType` | `'clientSide' \| 'infinite'` | `'clientSide'` | Chế độ load dữ liệu |
-| `onFetchData` | `(startRow, endRow) => Promise<{ data: T[]; totalCount: number }>` | - | Fetch dữ liệu khi dùng infinite scroll |
-| `onAdd` | `() => void` | - | Click nút Thêm (pinned row) |
-| `onExport` | `(selectedRows: T[]) => void` | - | Click nút Xuất, nhận danh sách dòng đang chọn |
-| `onDelete` | `(selectedRows: T[]) => void` | - | Click nút Xóa, nhận danh sách dòng đang chọn |
-| `showActionToolbar` | `boolean` | `true` | Hiển thị hàng hành động pinned |
-| `contextMenuItems` | `DataTableContextMenuItem[]` | copy & copyWithHeaders | Menu chuột phải tùy chỉnh |
-| `getRowActions` | `(row: T) => DataTableRowAction<T>[]` | preset Edit/Copy/Delete | Tùy biến menu hành động trên từng dòng |
+```tsx
+const getRowActions = (row: any) => [
+  { key: 'edit', label: 'Edit', onClick: () => handleEdit(row) },
+  { key: 'duplicate', label: 'Duplicate', onClick: () => handleDuplicate(row) },
+  { key: 'delete', label: 'Delete', color: 'danger', onClick: () => handleDelete(row) },
+];
 
-## 📁 Cấu trúc
-
-```
-src/
-├── components/
-│   ├── DataTable.tsx
-│   ├── DataTable.css
-│   └── index.ts
-├── types/
-│   └── table.types.ts
-├── examples/
-│   └── RemoteEntriesExample.tsx
-├── main.tsx
-└── index.css
+<Ad99DataTable getRowActions={getRowActions} {...otherProps} />
 ```
 
-## 🧪 Demo
+### Custom Context Menu
 
-Xem `src/examples/RemoteEntriesExample.tsx` để thấy cấu hình đầy đủ (infinite scroll, row actions, context menu).
+```tsx
+const contextMenuItems = [
+  { key: 'copy', label: 'Copy', shortcut: 'Ctrl+C', action: handleCopy },
+  { key: 'paste', label: 'Paste', shortcut: 'Ctrl+V', action: handlePaste },
+];
 
-## 🔧 Tech
+<Ad99DataTable contextMenuItems={contextMenuItems} {...otherProps} />
+```
 
-React 18, TypeScript, AG Grid, Vite.
-# ad99-ag-grid-table
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build library
+npm run build
+
+# Run validation
+npm run validate
+```
+
+## Publishing
+
+### NPM Registry
+
+```bash
+npm run deploy:patch  # 1.0.0 → 1.0.1
+npm run deploy:minor  # 1.0.0 → 1.1.0
+npm run deploy:major  # 1.0.0 → 2.0.0
+```
+
+### GitHub Packages
+
+```bash
+npm run deploy:github:patch
+npm run deploy:github:minor
+npm run deploy:github:major
+```
+
+### Local Installation
+
+```bash
+npm pack
+# Install in another project
+npm install ../ad99-ag-grid-table-1.0.0.tgz
+```
+
+## Tech Stack
+
+- React 19
+- TypeScript 5
+- AG Grid 34
+- Material UI Joy
+- Vite 5
+
+## License
+
+MIT © [anhdev99](https://github.com/anhdev99)
