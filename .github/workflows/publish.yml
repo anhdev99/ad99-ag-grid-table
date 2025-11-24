@@ -34,6 +34,16 @@ jobs:
       - name: Build package
         run: npm run build
 
+      - name: Check NPM_TOKEN
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "❌ NPM_TOKEN secret is not set!"
+            echo "Please add NPM_TOKEN to GitHub Secrets:"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+          echo "✅ NPM_TOKEN is configured"
+
       - name: Publish to npm
         run: npm publish --access public
         env:
