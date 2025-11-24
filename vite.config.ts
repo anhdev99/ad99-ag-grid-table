@@ -4,7 +4,9 @@ import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react({
+    jsxRuntime: 'automatic'
+  })],
   server: {
     port: 3000,
     open: true,
@@ -20,6 +22,7 @@ export default defineConfig({
       external: [
         'react',
         'react-dom',
+        'react/jsx-runtime',
         'ag-grid-community',
         'ag-grid-react',
         '@mui/joy',
@@ -29,9 +32,11 @@ export default defineConfig({
         '@emotion/styled',
       ],
       output: {
+        interop: 'auto',
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
+          'react/jsx-runtime': 'jsxRuntime',
           'ag-grid-community': 'AgGrid',
           'ag-grid-react': 'AgGridReact',
           '@mui/joy': 'MuiJoy',
