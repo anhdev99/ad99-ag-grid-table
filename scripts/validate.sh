@@ -40,7 +40,7 @@ echo -e "${GREEN}✓ Build successful${NC}\n"
 
 # 4. Check dist files
 echo -e "${YELLOW}4. Checking dist files...${NC}"
-REQUIRED_FILES=("dist/index.cjs" "dist/index.mjs" "dist/style.css" "dist/types")
+REQUIRED_FILES=("dist/index.cjs" "dist/index.mjs" "dist/ad99-ag-grid-table.css" "dist/types")
 for file in "${REQUIRED_FILES[@]}"; do
     if [ ! -e "$file" ]; then
         echo -e "${RED}❌ Missing: $file${NC}"
