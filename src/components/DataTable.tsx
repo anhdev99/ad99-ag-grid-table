@@ -26,6 +26,7 @@ const Ad99DataTable = memo(function Ad99DataTable<T = any>({
   onExport,
   onDelete,
   showActionToolbar = true,
+  toolbarConfig,
   contextMenuItems,
   getRowActions,
 }: DataTableProps<T>) {
@@ -37,6 +38,15 @@ const Ad99DataTable = memo(function Ad99DataTable<T = any>({
   const preventBrowserContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
   }, []);
+  
+  // Merge toolbar config with defaults
+  const effectiveToolbarConfig = useMemo(() => ({
+    showAdd: toolbarConfig?.showAdd ?? true,
+    showExport: toolbarConfig?.showExport ?? true,
+    showDelete: toolbarConfig?.showDelete ?? true,
+    customActions: toolbarConfig?.customActions ?? [],
+  }), [toolbarConfig]);
+  
   // Store callbacks in refs to avoid triggering processedColumnDefs changes
   const callbacksRef = useRef<{
     onAdd?: DataTableProps<T>['onAdd'];
@@ -300,20 +310,38 @@ const Ad99DataTable = memo(function Ad99DataTable<T = any>({
       cellRenderer: (params: any) => {
         // Action toolbar row - show Add/Export/Delete together
         if (params.node.rowPinned === 'top' && showActionToolbar) {
+          const selectedRows = getSelectedRows();
           return (
             <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-start', px: 0.5, height: '100%', width: '100%' }}>
-              <IconButton size="sm" variant="plain" color="neutral" onClick={handleExportClick}>
-                <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              <IconButton
-                size="sm"
-                variant="plain"
-                color="danger"
-                onClick={handleDeleteClick}
-                disabled={selectedCountRef.current === 0}
-              >
-                <DeleteRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
+              {effectiveToolbarConfig.showExport && (
+                <IconButton size="sm" variant="plain" color="neutral" onClick={handleExportClick}>
+                  <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              )}
+              {effectiveToolbarConfig.showDelete && (
+                <IconButton
+                  size="sm"
+                  variant="plain"
+                  color="danger"
+                  onClick={handleDeleteClick}
+                  disabled={selectedCountRef.current === 0}
+                >
+                  <DeleteRoundedIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              )}
+              {effectiveToolbarConfig.customActions?.map((action) => (
+                <IconButton
+                  key={action.key}
+                  size="sm"
+                  variant={action.variant ?? 'plain'}
+                  color={action.color ?? 'neutral'}
+                  onClick={() => action.onClick?.(selectedRows)}
+                  disabled={action.disabled?.(selectedRows) ?? false}
+                  title={action.tooltip}
+                >
+                  {action.icon}
+                </IconButton>
+              ))}
             </Box>
           );
         }
@@ -414,13 +442,13 @@ const Ad99DataTable = memo(function Ad99DataTable<T = any>({
             headerComponent: HeaderSelectAllComponent,
             cellRenderer: (params: any) => {
               if (params.node.rowPinned === 'top' && showActionToolbar) {
-                return (
+                return effectiveToolbarConfig.showAdd ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                     <IconButton size="sm" variant="plain" color="primary" onClick={() => callbacksRef.current.onAdd?.()}>
                       <AddRoundedIcon fontSize="small" />
                     </IconButton>
                   </Box>
-                );
+                ) : null;
               }
               return undefined;
             },

@@ -5,6 +5,8 @@ import { RemoteEntry } from '../types/table.types';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import PrintIcon from '@mui/icons-material/Print';
 
 // Fake API service with delay
 const fakeApiService = {
@@ -27,7 +29,7 @@ const fakeApiService = {
 // Status cell renderer
 const StatusCellRenderer = (params: any) => {
   return (
-    <span style={{ 
+    <span style={{
       color: '#52c41a',
       fontWeight: 500,
       fontSize: '13px'
@@ -41,9 +43,9 @@ const StatusCellRenderer = (params: any) => {
 // Link cell renderer
 const LinkCellRenderer = (params: any) => {
   return (
-    <a 
-      href={params.value} 
-      target="_blank" 
+    <a
+      href={params.value}
+      target="_blank"
       rel="noopener noreferrer"
       style={{ color: '#1890ff', textDecoration: 'none', fontWeight: 400 }}
       onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
@@ -213,6 +215,34 @@ const RemoteEntriesExample: React.FC = () => {
           paginationPageSize={50}
           domLayout="normal"
           rowModelType={mode === 'pagination' ? 'clientSide' : 'infinite'}
+          toolbarConfig={{
+            showAdd: true,        // Ẩn/hiện nút Add (mặc định: true)
+            showExport: false,    // Ẩn/hiện nút Export (mặc định: true)
+            showDelete: true,     // Ẩn/hiện nút Delete (mặc định: true)
+            customActions: [      // Thêm các nút tùy chỉnh
+              {
+                key: 'refresh',
+                icon: <RefreshIcon />,
+                tooltip: 'Làm mới',
+                color: 'primary',
+                variant: 'plain',
+                onClick: (selectedRows) => {
+                  console.log('Refresh clicked', selectedRows);
+                },
+                disabled: (selectedRows) => selectedRows.length === 0
+              },
+              {
+                key: 'print',
+                icon: <PrintIcon />,
+                tooltip: 'In',
+                color: 'neutral',
+                onClick: (selectedRows) => {
+                  // Logic in
+                  console.log('Print clicked', selectedRows);
+                }
+              }
+            ]
+          }}
         />
       </div>
     </div>
